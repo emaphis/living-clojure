@@ -286,3 +286,129 @@ developer
 ;;rabbit
 ;;Unable to resolve symbol: rabbit in this context
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Creating Our Own Functions
+
+
+;; Return a String
+(defn follow-the-rabbit [] "Off we go!")
+;; => #'wonderland.chapter01/follow-the-rabbit
+
+(follow-the-rabbit)
+;; => "Off we go!"
+
+;; Takes two jams and returns a map of jams
+(defn shop-for-jams [jam1 jam2]
+  {:name "jam-basket"
+   :jam1 jam1
+   :jam2 jam2})
+;; => #'wonderland.chapter01/shop-for-jams
+
+(shop-for-jams "strawberry" "marmalade")
+;; => {:name "jam-basket", :jam1 "strawberry", :jam2 "marmalade"}
+
+;;; anonymous functions
+
+;; returns back a function
+(fn [] (str "Off we go" "!"))
+;; => #function[wonderland.chapter01/eval6142/fn--6143]
+
+;; invoke functions with parens
+((fn [] (str "Off we go" "!")))
+;; => "Off we go!"
+
+;; defn is a convenience function:
+(def follow-again (fn [] (str "Off we go" "!")))
+;; => #'wonderland.chapter01/follow-again
+
+(follow-again)
+;; => "Off we go!"
+
+;; reader macro for anonymous function definition
+(#(str "Off we go" "!"))
+;; => "Off we go!"
+
+;; one parameter
+(#(str "Off we go" "!" " - " %) "again")
+;; => "Off we go! - again"
+
+;; multiple functions
+(#(str "Off we go" "!" " - " %1 %2) "again" "?")
+;; => "Off we go! - again?"
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Keep Symbols Organized in Namespaces
+
+(ns alice.favfoods)
+;; => nil
+
+*ns*
+;; => #namespace[alice.favfoods]
+
+(def fav-food "strawberry jam")
+;; => #'alice.favfoods/fav-food
+
+fav-food
+;; => "strawberry jam"
+
+;; qualified name
+alice.favfoods/fav-food
+;; => "strawberry jam"
+
+
+(ns rabbit.favfood)
+;; => nil
+
+;; fav-food ; no longer visible
+
+(def fav-food "lettuce soup")
+;; => #'rabbit.favfood/fav-food
+
+fav-food
+;; => "lettuce soup"
+
+alice.favfoods/fav-food
+;; => "strawberry jam"
+
+;; access libraries using fully qualified names
+(clojure.set/union #{:r :b :w} #{:w :p :y})
+;; => #{:y :r :w :b :p}
+
+
+;; access using require expression with an alias
+
+(ns wonderland)
+;; => nil
+
+(require '[alice.favfoods :as af])
+;; => nil
+
+af/fav-food
+;; => "strawberry jam"
+
+;; normally 'require' is nested in an ns expression
+(ns wonderland
+  (:require [alice.favfoods :as af]))
+;; => nil
+
+af/fav-food
+;; => "strawberry jam"
+
+
+;; require a namespace with :refer options
+
+(ns wonderland
+  (:require [clojure.set :as s]))
+
+(defn common-fav-foods [foods1 foods2]
+  (let [food-set1 (set foods1)
+        food-set2 (set foods2)
+        common-foods (s/intersection food-set1 food-set2)]
+    (str "Common Foods:" common-foods)))
+
+(common-fav-foods [:jam :brownies :toast]
+                  [:lettuce :carrots :jam])
+;; => "Common Foods:#{:jam}"
+
