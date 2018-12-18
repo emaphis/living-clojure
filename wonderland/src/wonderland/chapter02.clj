@@ -61,7 +61,7 @@
 ;; => true
 
 ;; 'not=' is shortcut for (not (= ....))
-(not= :drinkme :4)
+(not= :drinkyme :4)
 ;; => true
 
 
@@ -79,7 +79,7 @@
 (empty? '())
 ;; => true
 
-;; 'seq' returns a seq abstraction on a collection of 'nil' on empty
+;; 'seq' returns a seq abstraction on a collection or 'nil' on empty
 
 (seq [1 2 3])
 ;; => (1 2 3)
@@ -93,7 +93,7 @@
 (seq [])
 ;; => nil
 
-;;; use 'seq' to test if a collection is not empty
+;;; use 'seq' to test if a collection is not empty - idiomatic in Clojure
 
 (empty? [])
 ;; => true
@@ -119,7 +119,7 @@
 (every? drinkable? [:drinkme :poison])
 ;; => false
 
-;; anonymous functional
+;; anonymous function
 (every? (fn [x] (= x :drinkme)) [:drinkme :drinkme])
 ;; => true
 
@@ -138,7 +138,7 @@
 (some #(> % 3) [1 2 3 4 5 6])
 ;; => true
 
-;; using a set
+;; using a set as a function
 (#{1 2 3 4 5} 3)
 ;; => 3
 
@@ -166,7 +166,7 @@
   "Don't try it")
 ;; => "Try it"
 
-;; if you want to test something then remember is
+;; if you want to test something then remember it
 (let [need-to-grow-small (> 5 3)]
   (if need-to-grow-small
     "drink bottle"
@@ -198,7 +198,7 @@
   "drink bottle")
 ;; => nil
 
-;; similar to multiple if else
+;; similar to multiple if else - case statement
 
 (let [bottle "drinkme"]
   (cond
@@ -282,7 +282,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Functions creating functions and other expressions
 
-;; 'partial' somewhat like curring
+;; 'partial' somewhat like currying
 
 (defn grow [name direction]
   (if (= direction :small)

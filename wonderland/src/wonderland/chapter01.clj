@@ -10,13 +10,13 @@
 12.43 ; decimal
 ;;12.43
 
-1/3 ; ration
+1/3 ; ratio
 ;;1/3
 
 4/2  ; ratios reduce
 ;;2
 
-;4.0/2 ; invalid - not a ratio
+;;4.0/2 ; invalid - not a ratio
 ;;NumberFormatException Invalid number: 4.0/2  clojure.lang.LispReader.readNumber (LispReader.java:330)
 
 (/ 1 3)
@@ -82,7 +82,8 @@ nil  ; nil type
 (first (rest (rest (rest '(:rabbit :pocket-watch :marmalade :door)))))
 ;;:door
 
-(first (rest (rest (rest (rest '(:rabbit :pocket-watch :marmalade :door)))))) ; now 'nil
+(first (rest (rest (rest (rest '(:rabbit :pocket-watch :marmalade :door))))))
+;; now 'nil
 ;;nil
 
 (cons 5 '())
@@ -123,7 +124,7 @@ nil  ; nil type
 (nth [:jar1 1 2 3 :jar2] 0)  ; zeroth index
 ;;:jar1
 
-(nth [:jar1 1 2 3 :jar2] 2)
+(nth [:jar1 1 2 3 :jar2] 2)  ; 0 1 2
 ;;2
 
 (last [:jar1 1 2 3 :jar2])
@@ -218,12 +219,12 @@ nil  ; nil type
 (set {:a 1 :b 2 :c 3})
 ;; => #{[:c 3] [:b 2] [:a 1]}
 
-;; using get
+;; using get -- sort of 'exists?'
 (get #{:rabbit :door :watch} :rabbit)
 ;; => :rabbit
 
 (get #{:rabbit :door :watch} :jar)
-;; => nil
+;; => nil ; doesn't exist.
 
 ;; a set is a function
 (#{:rabbit :door :watch} :watch)
@@ -247,6 +248,7 @@ nil  ; nil type
 ;;; Lists are the hear of Clojure  pg 47
 
 '("marmalade-jar" "empty-jar" "pickle-jam-jar")
+;; => ("marmalade-jar" "empty-jar" "pickle-jam-jar")
 
 '(+ 1 1)
 ;; => (+ 1 1)
@@ -258,7 +260,7 @@ nil  ; nil type
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Sumbols and the Art of Binding
+;;; Symbols and the Art of Binding
 
 ;; define symbols with 'def'
 
@@ -326,14 +328,14 @@ developer
 ;; => "Off we go!"
 
 ;; reader macro for anonymous function definition
-(#(str "Off we go" "!"))
+(#(str "Off we go" "!"))  ; parenthesis to execute
 ;; => "Off we go!"
 
 ;; one parameter
 (#(str "Off we go" "!" " - " %) "again")
 ;; => "Off we go! - again"
 
-;; multiple functions
+;; multiple parameters
 (#(str "Off we go" "!" " - " %1 %2) "again" "?")
 ;; => "Off we go! - again?"
 
