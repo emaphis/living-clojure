@@ -343,5 +343,359 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Destructuring
+;;; Destructuring  pg 73.
 
+;; destructuring
+(let [[color size] ["blue" "small"]]
+  (str "The " color " door is " size))
+;; => "The blue door is small"
+
+;; alternative.
+(let [x ["blue" "small"]
+      color (first x)
+      size (last x)]
+  (str "The " color " door is " size))
+;; => "The blue door is small"
+
+;; nesting
+(let [[color [size]] ["blue" ["very small"]]]
+  (str "The " color " door is " size))
+;; => "The blue door is very small"
+
+;; preserving the original structure
+(let [[color [size] :as original] ["blue" ["very small"]]]
+  {:color color :size size :original original})
+;; => {:color "blue", :size "very small", :original ["blue" ["very small"]]}
+
+;; maps
+(let [{flower1 :flower1 flower2 :flower2}
+      {:flower1 "red" :flower2 "blue"}]
+  (str "The flowers are " flower1 " and " flower2))
+;; => "The flowers are red and blue"
+
+;; keep the original with a map
+(let [{flower1 :flower1 :as all-flowers}
+      {:flower1 "red"}]
+  [flower1 all-flowers])
+;; => ["red" {:flower1 "red"}]
+
+;; keep the name of the key using :keys form
+(let [{:keys [flower1 flower2]}
+      {:flower1 "red" :flower2 "blue"}]
+  (str "The flowers are " flower1 " and " flower2))
+;; => "The flowers are red and blue"
+
+
+;; using destructuring in functions
+
+;; using key functions
+(defn flower-colors [colors]
+  (str "The flowers are "
+       (:flower1 colors)
+       " and "
+       (:flower2 colors)))
+
+(flower-colors {:flower1 "red" :flower2 "blue"})
+;; => "The flowers are red and blue"
+
+;; using :keys destructuring
+(defn flower-colors [{:keys [flower1 flower2]}]
+  (str "The flowers are " flower1 " and " flower2))
+
+(flower-colors {:flower1 "red" :flower2 "blue"})
+;; => "The flowers are red and blue"
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; The power of laziness  pg. 76
+
+;; infinite lists with lazy sequences
+(take 5 (range))
+;; => (0 1 2 3 4)
+
+(take 10 (range))
+;; => (0 1 2 3 4 5 6 7 8 9)
+
+(range 5)
+;; => (0 1 2 3 4)
+
+(range 10)
+;; => (0 1 2 3 4 5 6 7 8 9)
+
+
+(count (take 1000 (range)))
+;; => 1000
+
+(count (take 100000 (range)))
+;; => 100000
+
+;; repeat lazy sequences
+(repeat 3 "rabbit")
+;; => ("rabbit" "rabbit" "rabbit")
+
+(class (repeat 3 "rabbit"))
+;; => clojure.lang.Repeat
+
+;; infinite lazy sequences
+(take 5 (repeat "rabbit"))
+;; => ("rabbit" "rabbit" "rabbit" "rabbit" "rabbit")
+
+(count (take 5000 (repeat "rabbit")))
+;; => 5000
+
+
+;; random sequence of digits:
+
+(repeat 5 (rand-int 10))
+;; => (3 3 3 3 3)  ;; opps.
+
+;; use repeatedly which executes a function of no arguments
+
+#(rand-int 10)
+;; => #function[wonderland.chapter02/eval7543/fn--7544]
+
+(#(rand-int 10)) ;; => 8
+
+
+(repeatedly 5 #(rand-int 10))
+;; => (8 9 1 9 7)
+
+;; lazy infinite sequence
+
+(take 10 (repeatedly #(rand-int 10)))
+;; => (4 6 0 3 2 6 3 2 6 7)
+
+
+;; return a lazy sequence of a collection repeated
+
+(take 3 (cycle ["big" "small"]))
+;; => ("big" "small" "big")
+
+(take 6 (cycle ["big" "small"]))
+;; => ("big" "small" "big" "small" "big" "small")
+
+;; end of infinity??
+(take 3 (rest (cycle ["big" "small"])))
+;; => ("small" "big" "small")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Recursion  pg.79
+
+(def adjs ["normal"
+           "too small"
+           "too big"
+           "is swimming"])
+
+(defn alice-is [in out]
+  (if (empty? in)
+    out
+    (alice-is (rest in)
+              (conj out
+                    (str "Alice is " (first in))))))
+
+(alice-is adjs [])
+;; => ["Alice is normal" "Alice is too small"
+;;     "Alice is too big" "Alice is is swimming"]
+
+
+;; using loop recure
+(defn alice-is [input]
+  (loop [in input
+         out []]
+    (if (empty? in)
+      out
+      (recur (rest in)
+             (conj out
+                   (str "Alice is " (first in)))))))
+
+(alice-is adjs)
+;; => ["Alice is normal" "Alice is too small"
+;;     "Alice is too big" "Alice is is swimming"]
+
+;; loop-recur doesn't use stack space
+
+(defn countdown [n]
+  (if (= n 0)
+    n
+    (countdown (- n 1))))  ;; uses stack space
+
+(countdown 3) ;; => 0
+
+;; (countdown 100000)  ; stack overflow
+
+(defn countdown [n]
+  (if (= n 0)
+    n
+    (recur (- n 1))))
+
+(countdown 100000) ;; => 0
+;; no stack overflow.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Functional Shape of Data Transformations  pg. 82
+;;; map and reduce.
+
+;;; Map the Ultimate
+
+(def animals [:mouse :duck :dodo :lory :eaglet])
+
+;; transform a keyword into a string
+
+(#(str %) :mouse) ;; => ":mouse"
+
+(map #(str %) animals)
+;; => (":mouse" ":duck" ":dodo" ":lory" ":eaglet")
+
+;; map returns a lazy sequence
+(class (map #(str %) animals)) ;; => clojure.lang.LazySeq
+
+(take 3 (map #(str %) (range))) ;; => ("0" "1" "2")
+
+(take 10 (map #(str %) (range)))
+;; => ("0" "1" "2" "3" "4" "5" "6" "7" "8" "9")
+
+;; side effects on lazy sequences
+
+(def animal-print (map #(println %) animals)) 
+;; => #'wonderland.chapter02/animal-print
+
+animal-print
+;; => (nil nil nil nil nil)
+
+;; force evaluation of side effects.
+(def animal-print (doall (map #(println %) animals)))
+;; => #'wonderland.chapter02/animal-print
+
+
+;; take more than one collection to map against
+
+(def animals
+  ["mouse" "duck" "dodo" "lory" "eaglet"])
+
+(def colors
+  ["brown" "black" "blue" "pink" "gold"])
+
+(defn gen-animal-string [animal color]
+  (str color "-" animal))
+
+(map gen-animal-string animals colors)
+;; => ("brown-mouse" "black-duck"
+;;     "blue-dodo" "pink-lory" "gold-eaglet")
+
+(map gen-animal-string animals (cycle ["brown" "black"]))
+;; => ("brown-mouse" "black-duck" "brown-dodo"
+;;      "black-lory" "brown-eaglet")
+
+
+;;; Reduce the Ultimate
+
+(reduce + [1 2 3 4 5]) ;; => 15
+
+(reduce (fn [r x] (+ r (* x x))) [1 2 3])
+;; => 14
+
+;; changing the shape
+
+(reduce (fn [ r x] (if (nil? x) r (conj r x)))
+        []
+        [:mouse nil :duck nil nil :lory])
+;; => [:mouse :duck :lory]
+
+
+;;; Other useful data shaping expressions
+;;; filter
+
+
+;; filter for
+
+((complement nil?) nil) ;; => false
+
+((complement nil?) 1) ;; => true
+
+(filter (complement nil?) [:mouse nil :duck nil])
+;; => (:mouse :duck)
+
+;; or keyword
+(filter keyword? [:mouse nil :duck nil])
+;; => (:mouse :duck)
+
+;; for
+
+(for [animal [:mouse :duck :lory]]
+  (str (name animal)))
+;; => ("mouse" "duck" "lory")
+
+;; two collections
+
+(for [animal [:mouse :duck :lory]
+      color [:red :blue]]
+  (str (name color) (name animal)))
+;; => ("redmouse" "bluemouse"
+;;     "redduck" "blueduck"
+;;     "redlory" "bluelory")
+
+(name :dog);; => "dog"
+
+
+;; suport modifiers - let
+(for [animal [:mouse :duck :lory]
+      color [:red :blue]
+      :let [animal-str (str "animal-" (name animal))
+            color-str (str "color-" (name color))
+            display-str (str animal-str "-" color-str)]]
+  display-str)
+;; => ("animal-mouse-color-red" "animal-mouse-color-blue"
+;;     "animal-duck-color-red" "animal-duck-color-blue"
+;;     "animal-lory-color-red" "animal-lory-color-blue")
+
+;; when
+(for [animal [:mouse :duck :lory]
+      color [:red :blue]
+      :let [animal-str (str "animal-"(name animal))
+            color-str (str "color-"(name color))
+            display-str (str animal-str "-" color-str)]
+      :when (= color :blue)]
+  display-str)
+;; => ("animal-mouse-color-blue"
+;;     "animal-duck-color-blue"
+;;     "animal-lory-color-blue")
+
+;; flatten
+(flatten [ [:duck [:mouse] [[:lory]]]])
+;; => (:duck :mouse :lory)
+
+;; changing type
+
+(vec '(1 2 3))
+;; -> [1 2 3]
+
+(into [] '(1 2 3))
+;; -> [1 2 3]
+
+(sorted-map :b 2 :a 1 :z 3)
+;; -> {:a 1, :b 2, :z 3}
+
+(into (sorted-map) {:b 2 :c 3 :a 1})
+;; -> {:a 1, :b 2, :c 3}
+
+(into {} [[:a 1] [:b 2] [:c 3]])
+;; -> {:a 1, :b 2, :c 3}
+
+(into [] {:a 1, :b 2, :c 3})
+;; -> [[:c 3] [:b 2] [:a 1]]
+
+
+(partition 3 [1 2 3 4 5 6 7 8 9])
+;; -> ((1 2 3) (4 5 6) (7 8 9))
+
+(partition 3 [1 2 3 4 5 6 7 8 9 10])
+;; -> ((1 2 3) (4 5 6) (7 8 9))
+
+(partition-all 3 [1 2 3 4 5 6 7 8 9 10])
+;; -> ((1 2 3) (4 5 6) (7 8 9) (10))
+
+(partition-by #(= 6 %) [1 2 3 4 5 6 7 8 9 10])
+;; -> ((1 2 3 4 5) (6) (7 8 9 10))
