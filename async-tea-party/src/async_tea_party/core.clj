@@ -1,4 +1,5 @@
 (ns async-tea-party.core
+  (:gen-class)
   (:require [clojure.core.async :as async]))
 
 
@@ -6,6 +7,7 @@
 
 (def google-tea-service-chan (async/chan 10))
 (def yahoo-tea-service-chan (async/chan 10))
+(def result-chan (async/chan 10))
 
 (defn random-add []
   (reduce + (conj [] (repeat 1 (rand-int 100000)))))
@@ -31,10 +33,11 @@
   (async/go (let [[v] (async/alts!
                        [google-tea-service-chan
                         yahoo-tea-service-chan])]
-              (println v))))
-;; => #'async-tea-party.core/request-tea
+              (async/>! result-chan v))))
 
-(request-tea)
-;; => #object[clojure.core.async.impl.channels.ManyToManyChannel 0x9bcdbe5 "clojure.core.async.impl.channels.ManyToManyChannel@9bcdbe5"]
-;; tea compliments of google
 
+;; pg 147
+(defn -main [& args]
+  (println "Requesting tea!")
+  (request-tea)
+  (println (async/<!! result-chan)))
