@@ -350,3 +350,386 @@
 ;; XML processing
 ;; Relational database results
 
+
+;;; Seq-ing Java collections
+
+;; String.getBytes returns a byte array
+
+(first (.getBytes "hello"))
+;; => 104
+
+(rest (.getBytes "hello"))
+;; => (101 108 108 111)
+
+;; Hashtables and Maps are also seq-able
+
+(first (System/getProperties)) ; System.getProperties returns a Hashtables
+;; => #object[java.util.concurrent.ConcurrentHashMap$MapEntry 0x167ebc5d "sun.desktop=windows"]
+
+(count (System/getProperties))
+;; => 57
+
+;; Strings are seq-able
+(first "Hello") ;; => \H
+
+(rest "Hello") ;; => (\e \l \l \o)
+
+(cons \H "ello") ;; => (\H \e \l \l \o)
+
+(reverse "hello")
+;; => (\o \l \l \e \h)
+
+(apply str (reverse "hello"))
+;; => "olleh"
+
+
+;; Seq-ing regular expressions
+
+;; don't do this!
+(let [m (re-matcher #"\w+" "the quick brown fox")]
+  (loop [match (re-find m)]
+    (when match
+      (println match)
+      (recur (re-find m)))))
+;; the
+;; quick
+;; brown
+;; fox
+
+;; use re-seq
+
+(re-seq #"\w+" "the quick brown fox")
+;; => ("the" "quick" "brown" "fox")
+
+(sort (re-seq #"\w+" "the quick brown fox"))
+;; => ("brown" "fox" "quick" "the")
+
+(drop 2 (re-seq #"\w+" "the quick brown fox"))
+;; => ("brown" "fox")
+
+(map #(.toUpperCase %) (re-seq #"\w+" "the quick brown fox"))
+;; => ("THE" "QUICK" "BROWN" "FOX")
+
+;; Re-seqing the File System
+
+(import '(java.io File))
+;; => java.io.File
+
+(.listFiles (File. "."))  ; .toString representation
+;; => #object["[Ljava.io.File;" 0x673e5cac "[Ljava.io.File;@673e5cac"]
+
+(seq (.listFiles (File. ".")))
+;; => (#object[java.io.File 0x416ae6c6 ".\\.gitignore"] #object[java.io.File 0x73a6d5bd ...
+
+;; using .getName - over kill
+(map #(.getName %) (.listFiles (File. ".")))
+;; => (".gitignore" ".lein-repl-history" ".nrepl-port" "CHANGELOG.md" "doc" "LICENSE" "project.clj" "README.md" "src" "target" "test")
+
+;; but map already calls 'seq'
+(map #(.getName %) (.listFiles (File. ".")))
+;; => (".gitignore" ".lein-repl-history" ".nrepl-port" "CHANGELOG.md" "doc" "LICENSE" "project.clj" "README.md" "src" "target" "test")
+
+(count (file-seq (File. ".")))
+;; => 35
+
+;;; check to see if any files changed recently
+
+(defn minutes-to-millis [mins] (* mins 1000 60))
+
+(defn recently-modified? [file]
+  (> (.lastModified file)
+     (- (System/currentTimeMillis) (minutes-to-millis 30))))
+
+(filter recently-modified? (file-seq (File. ".")))
+;; => (#object[java.io.File 0x650c935e ".\\src\\wonderland"] #object[java.io.File 0x5eedd1fb ".\\src\\wonderland\\sequences.clj"])
+
+
+;;; Seq-ing a Stream
+
+(use '[clojure.java.io :only (reader)])
+
+(take 3 (line-seq (reader "src/wonderland/primes.clj")))
+;; => ("(ns wonderland.primes)" "" ";; Taken from clojure.contrib.lazy-seqs")
+
+;; using with-open
+
+(with-open [rdr (reader "src/wonderland/primes.clj")]
+  (count (line-seq rdr)))
+;; => 22
+
+;;; program
+(use '[clojure.java.io :only (reader)])
+
+(defn non-blank? [line] (if (re-find #"\S" line) true false))
+
+(defn non-svn? [file] (not (.contains (.toString file) ".svn")))
+
+(defn clojure-source? [file] (.endsWith (.toString file) ".clj"))
+
+(defn clojure-loc [base-file]
+  (reduce
+   +
+   (for [file (file-seq base-file)
+         :when (and (clojure-source? file) (non-svn? file))]
+     (with-open [rdr (reader file)]
+       (count (filter non-blank? (line-seq rdr)))))))
+
+(clojure-loc (java.io.File. "c:/src/Clojure"))
+;; => 8638
+
+
+;;; Seq-ing XML
+
+(use '[clojure.xml :only (parse)])
+
+(parse (java.io.File. "resource/compositions.xml"))
+
+;; {:tag :compositions, :attrs nil, :content
+;;  [{:tag :composition, :attrs {:composer "J. S. Bach"},
+;;    :content [{:tag :name, :attrs nil, :content ["The Art of the Fugue"]}]}
+;;   {:tag :composition, :attrs {:composer "F. Chopin"},
+;;    :content [{:tag :name, :attrs nil, :content ["Fantaisie-Impromptu Op. 66"]}]}
+;;   {:tag :composition, :attrs {:composer "W. A. Mozart"},
+;;    :content [{:tag :name, :attrs nil, :content ["Requiem"]}]}]}
+
+;; extracts just the composers
+
+(for [x (xml-seq
+         (parse (java.io.File. "resource/compositions.xml")))
+      :when (= :composition (:tag x))]
+  (:composer (:attrs x)))
+;; => ("J. S. Bach" "F. Chopin" "W. A. Mozart")
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Calling structure specific functions
+
+;;; Functions on Lists
+
+;; stack functions
+;; (peek col)
+;; (pop col)
+
+(peek '(1 2 3)) ; same a first
+;; => 1
+
+(pop '(1 2 3))  ; different then rest, throws an exception if empty 
+;; => (2 3)
+
+
+;;; Functions on Vectors
+
+(peek [1 2 3])
+;; => 3
+
+(pop [1 2 3])
+;; => [1 2]
+
+;; get returns an indexed value
+(get [:a :b :c] 1)
+;; => :b
+
+(get [:a :b :c] 5)
+;; => nil
+
+
+([:a :b :c] 1)
+;; => :b
+
+;; ([:a :b :c] 5)
+;; Unhandled java.lang.IndexOutOfBoundsException
+
+;; 'assoc' associated a new value with a particular index
+(assoc [0 1 2 3 4] 2 :two)
+;; => [0 1 :two 3 4]
+
+;; (subvec avec start end?) ; returns a subvector
+
+(subvec [1 2 3 4 5] 3)
+;; => [4 5]
+
+(subvec [1 2 3 4 5] 1 3)
+;; => [2 3]
+
+;; equivalent but more general and slower on vecs.
+(take 2 (drop 1 [1 2 3 4 5]))
+;; => (2 3)
+
+
+;;; Functions on Maps
+
+;; (keys map)
+;; (vals map)
+
+
+(keys {:sundance "spaniel", :darwin "beagle"})
+;; => (:sundance :darwin)
+
+(vals {:sundance "spaniel", :darwin "beagle"})
+;; => ("spaniel" "beagle")
+
+
+;; (get map key value-if-not-found?)
+
+(get {:sundance "spaniel", :darwin "beagle"} :darwin)
+;; => "beagle"
+
+(get {:sundance "spaniel", :darwin "beagle"} :snoopy)
+;; => nil
+
+;; maps are functions on keys
+({:sundance "spaniel", :darwin "beagle"} :darwin)
+;; => "beagle"
+
+({:sundance "spaniel", :darwin "beagle"} :snoopy)
+;; => nil
+
+;; keys are also functions
+(:darwin {:sundance "spaniel", :darwin "beagle"})
+;; => "beagle"
+
+;; (contains? map key) ; check if key exists in map
+
+(def score {:stu nil :joey 100})
+
+(:stu score)
+;; => nil
+
+(contains? score :stu)
+;; => true
+
+;; or use get
+(get score :stu :score-not-found)
+;; => nil
+
+(get score :aaron :score-not-found)
+;; => :score-not-found
+
+;; functions for building new maps:
+;; assoc - new map with added pair
+;; dissoc - new map with a pair removed
+;; select-keys - new map keeping only pairs with keys
+;; merge - combines maps
+
+(def song {:name "Angus Dei"
+           :artist "Krzystof Penderecki"
+           :album "Polish Reqiem"
+           :genre "Classical"})
+
+(assoc song :kind "MPEG Audio File")
+;; => {:name "Angus Dei", :artist "Krzystof Penderecki", :album "Polish Reqiem", :genre "Classical", :kind "MPEG Audio File"}
+
+(dissoc song :genre)
+;; => {:name "Angus Dei", :artist "Krzystof Penderecki", :album "Polish Reqiem"}
+
+(select-keys song [:name :artist])
+;; => {:name "Angus Dei", :artist "Krzystof Penderecki"}
+
+(merge song {:size 8118166 :time 507245})
+;; => {:name "Angus Dei", :artist "Krzystof Penderecki", :album "Polish Reqiem", :genre "Classical", :size 8118166, :time 507245}
+
+;; (merge-with merge-fn & maps)
+
+(merge-with
+ concat
+ {:rubble ["Barney"], :flintstone ["Fred"]}
+ {:rubble ["Betty"], :flintstone ["Wilma"]}
+ {:rubble ["Bam-Bam"], :flintstone ["Pebbles"]})
+;; => {:rubble ("Barney" "Betty" "Bam-Bam"), :flintstone ("Fred" "Wilma" "Pebbles")}
+
+
+;;; Functions on Sets
+
+;; union - returns the set of all elements present in either input set.
+;; intersection - returns the set of all elements present in both sets.
+;; difference - returns the et of all elements present in the first input set minus those in the second
+;; select - returns the set of all elements matching a predicate
+
+(require '[clojure.set :as set])
+
+(def languages #{"java" "c" "d" "clojure"})
+(def beverages #{"java" "chai" "pop"})
+
+(set/union languages beverages)
+;; => #{"d" "clojure" "pop" "java" "chai" "c"}
+
+;; languages that are not beverages
+(set/difference languages beverages)
+;; => #{"d" "clojure" "c"}
+
+;; both languages and beverages
+(set/intersection languages beverages)
+;; => #{"java"}
+
+(set/select #(= 1 (.length %)) languages)
+;; => #{"d" "c"}
+
+;; relation between relational algebra
+;;  Algerbra   SQL     Clojure
+;;  Relation   Table   set-like
+;;  Tuple      Row     map-like
+
+(def compositions
+  #{{:name "The Art of the Fugue" :composer "J. S. Bach"}
+    {:name "Musical Offering" :composer "J. S. Bach"}
+    {:name "Requiem" :composer "Giuseppe Verdi"}
+    {:name "Requiem" :composer "W. A. Mozart"}})
+
+(def composers
+  #{{:composer "J. S. Bach" :country "Germany"}
+    {:composer "W. A. Mozart" :country "Austria"}
+    {:composer "Giuseppe Verdi" :country "Italy"}})
+
+(def nations
+  #{{:nation "Germany" :language "German"}
+    {:nation "Austria" :language "German"}
+    {:nation "Italy" :language "Italian"}})
+
+
+;; (rename relation rename-map)
+
+(set/rename compositions {:name :title})
+;; => #{{:composer "Giuseppe Verdi", :title "Requiem"} {:composer "W. A. Mozart", :title "Requiem"} {:composer "J. S. Bach", :title "The Art of the Fugue"} {:composer "J. S. Bach", :title "Musical Offering"}}
+
+;; (select pred relation) - returns maps for which a predicate is true - analogous to WHERE
+(set/select #(= (:name %) "Requiem") compositions)
+;; => #{{:name "Requiem", :composer "Giuseppe Verdi"} {:name "Requiem", :composer "W. A. Mozart"}}
+
+;; (project relation keys) - SELECT that specifies a subset of columns
+(set/project compositions [:name])
+;; => #{{:name "The Art of the Fugue"} {:name "Musical Offering"} {:name "Requiem"}}
+
+;; cross product
+
+(for [m compositions c composers] (concat m c))
+;; (([:name "Musical Offering"] [:composer "J. S. Bach"]  [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Musical Offering"] [:composer "J. S. Bach"] [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Musical Offering"] [:composer "J. S. Bach"] [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "W. A. Mozart"] [:country "Austria"]))
+
+(set/join compositions composers)
+;; #{{:composer "W. A. Mozart", :country "Austria", :name "Requiem"}
+;;   {:composer "J. S. Bach", :country "Germany", :name "Musical Offering"}
+;;   {:composer "Giuseppe Verdi", :country "Italy", :name "Requiem"}
+;;   {:composer "J. S. Bach", :country "Germany", :name "The Art of the Fugue"}}
+
+(set/join composers nations {:country :nation})
+;; #{{:composer "W. A. Mozart", :country "Austria", :nation "Austria", :language "German"}
+;;   {:composer "J. S. Bach", :country "Germany", :nation "Germany", :language "German"}
+;;   {:composer "Giuseppe Verdi", :country "Italy", :nation "Italy", :language "Italian"}}
+
+
+(set/project
+ (set/join
+  (set/select #(= (:name %) "Requiem") compositions)
+  composers)
+ [:country])
+;; => #{{:country "Italy"} {:country "Austria"}}

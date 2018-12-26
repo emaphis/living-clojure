@@ -1,0 +1,11 @@
+<compositions>
+    <composition composer="J. S. Bach">
+      <name>The Art of the Fugue</name>
+    </composition>
+    <composition composer="F. Chopin">
+      <name>Fantaisie-Impromptu Op. 66</name>
+    </composition>
+    <composition composer="W. A. Mozart">
+      <name>Requiem</name>
+    </composition>
+</compositions>
