@@ -28,7 +28,7 @@
               (fib next (+ current next) (dec n))))]
     (fib 0N 1N n)))
 
-(tail-fibo 15000)
+(tail-fibo 1000)
 
 ;; self-recursion with recure
 
@@ -189,3 +189,149 @@
 ;; add extra parentheses to execute the function
 (((faux-curry true?) (= 1 1)))
 ;; => true
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Recursion revisited
+
+;; mutual recursion
+
+(declare my-odd? my-even?)
+
+(defn my-odd? [n]
+  (if (= n 0)
+    false
+    (my-even? (dec n))))
+
+(defn my-even? [n]
+  (if (= n 0)
+    true
+    (my-odd? (dec n))))
+
+(map my-even? (range 10))
+;; => (true false true false true false true false true false)
+
+(map my-odd? (range 10))
+;; => (false true false true false true false true false true)
+
+;; (my-even? (* 1000 1000 1000))
+;; Unhandled java.lang.StackOverflowError
+
+;;; converting to self-recursion
+
+(defn parity [n]
+  (loop [n n par 0]
+    (if (= n 0)
+      par
+      (recur (dec n) (- n par)))))
+
+(map parity (range 10))
+;; => (0 1 -1 2 -2 3 -3 4 -4 5)
+
+(defn my-even? [n] (= 0 (parity n)))
+(defn my-odd? [n] (= 1 (parity n)))
+
+
+;;; Trampolining mutual recursion
+
+;; (trampoline f & partial-args)
+
+(trampoline list)
+;; => ()
+
+(trampoline + 1 2)
+;; => 3
+
+;; don't write code like this
+(defn trampoline-fibo [n]
+  (let [fib (fn fib [f-2 f-1 current]
+              (let [f (+ f-2 f-1)]
+                (if (= n current)
+                  f
+                  #(fib f-1 f (inc current)))))]
+    (cond
+      (= n 0) 0
+      (= n 1) 1
+      :else (fib 0N 1 2))))
+
+(trampoline trampoline-fibo 9)
+;; => 34N
+
+(rem (trampoline trampoline-fibo 1000000) 1000)
+;; => 875N
+
+
+
+(declare my-odd? my-even?)
+
+(defn my-odd? [n]
+  (if (= n 0)
+    false
+    #(my-even? (dec n))))
+
+(defn my-even? [n]
+  (if (= n 0)
+    true
+    #(my-odd? (dec n))))
+
+(trampoline my-even? 10000000)
+;; => true
+
+(require '[wonderland.wallingford :as wall])
+
+(wall/replace-symbol '((a b) (((b g r) (f r)) c (d e)) b) 'b 'a)
+;; => ((a a) (((a g r) (f r)) c (d e)) a)
+
+(defn deeply-nested [n]
+  (loop [n n
+         result '(bottom)]
+    (if (= n 0)
+      result
+      (recur (dec n) (list result)))))
+
+(deeply-nested 5)
+;; => ((((((bottom))))))
+
+(deeply-nested 25)
+;; => ((((((((((((((((((((((((((bottom))))))))))))))))))))))))))
+
+
+;;; Memoization
+
+;; do not use these directly
+(declare m f)
+
+(defn m [n]
+  (if (zero? n)
+    0
+    (- n (f (m (dec n))))))
+
+(defn f [n]
+  (if (zero? n)
+    1
+    (- n (m (f (dec n))))))
+
+(time (m 200))
+;; => 124
+;; "Elapsed time: 4087.6877 msecs"
+
+(def m (memoize m))
+(def f (memoize f))
+
+
+(time (m 200))
+;; => 124
+;; "Elapsed time: 51.1075 msecs"
+
+(time (m 200))
+;; => 124
+;; "Elapsed time: 0.0304 msecs"
+
+;; lazy sequences + memoization
+
+(def m-seq (map m (iterate inc 0)))
+(def f-seq (map f (iterate inc 0)))
+
+(time (nth m-seq 10000))
+;; => 6180
+;; "Elapsed time: 81.2914 msecs"
