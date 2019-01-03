@@ -4,16 +4,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Everything is a sequence
 
-;; (first aseq)
+;; All Clojure collections
+;; All Java collections
+;; Java arrays and strings
+;; Regular expression matches
+;; Directory structures
+;; I/O streams
+;; XML trees
 
-;; (rest aseq)
-
-;; (cons elem aseq)
+;; (first aseq)     ; get the first item in a sequence
+;; (rest aseq)      ; return the rest of a sequence but first
+;; (cons elem aseq) ; add an item to the front of a sequence
 
 ;; clojure.lang.ISeq
 
-;; (seq coll) ;; return a seq or nil if empty
+;; (seq coll) ; return a seq or nil if empty
 
+;; return the seq of the items after the first
 ;; (next aseq) => (seq (rest aseq))
 
 ;; clarify rest/next behavoir
@@ -52,9 +59,15 @@
 (class (rest [1 2 3]))
 ;; => clojure.lang.PersistentVector$ChunkedSeq
 
+(class (next [1 2 3]))
+;; => clojure.lang.PersistentVector$ChunkedSeq
 
-;;;;;;;;;;;;;;;;;;;;;
-;;; Maps and Sets
+;; apply rest of cons to a vector results in a seq.
+(seq? (rest [1 2 3]))
+;; => true
+
+
+;;; Maps and Sets used as seqs
 
 (first {:fname "Aaron" :lname "Bedra"})
 ;; => [:fname "Aaron"]
@@ -65,6 +78,8 @@
 (cons [:mname  "James"] {:fname "Aaron" :lname "Bedra"})
 ;; => ([:mname "James"] [:fname "Aaron"] [:lname "Bedra"])
 
+;; sets
+
 (first #{:the :quick :brown :fox})
 ;; => :fox
 
@@ -74,24 +89,32 @@
 (cons :jumped #{:the :quick :brown :fox})
 ;; => (:jumped :fox :the :quick :brown)
 
-;; elements don't come back in the order entered
+;; elements don't come back in the order entered...
 #{:the :quick :brown :fox}
 ;; => #{:fox :the :quick :brown}
 
+;; ... so use sorted sets
 (sorted-set :the :quick :brown :fox)
 ;; => #{:brown :fox :quick :the}
 
+;; same with maps.
 {:a 1 :b 2 :c 3 :d 4 :e 5}
+;; => {:a 1, :b 2, :c 3, :d 4, :e 5} ; uhhmm..
+
+(sorted-map :a 1 :b 2 :c 3 :d 4 :e 5)
 ;; => {:a 1, :b 2, :c 3, :d 4, :e 5}
 
 
 ;; 'conj' and 'into' add elements to a list in natural order.
+
+;; adds to the front
 (conj '(1 2 3) :a)
 ;; => (:a 1 2 3)
 
 (into '(1 2 3) '(:a :b :c))
 ;; => (:c :b :a 1 2 3) ; like a stack
 
+;; add to the rear.
 (conj [1 2 3] :a)
 ;; => [1 2 3 :a]
 
@@ -99,8 +122,23 @@
 ;; => [1 2 3 :a :b :c]
 
 
+;; again these sequence functions return sequence interfaces
+
+(list? (rest [1 2 3]))
+;; => false
+
+(seq? (rest [1 2 3]))
+;; => true
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The sequence library
+
+;; Functions that create sequences
+;; Functions that filter sequences
+;; Sequence predicates
+;; Functions that transform sequences
+
 
 ;;; Creating sequences
 
@@ -115,6 +153,11 @@
 (range 1 25 2)
 ;; => (1 3 5 7 9 11 13 15 17 19 21 23)
 
+(range 0 -1 -0.25)  ; negative step
+;; => (0 -0.25 -0.5 -0.75)
+
+(range 1/2 4 1)  ; ratios
+;; => (1/2 3/2 5/2 7/2)
 
 ;; (repeat n x) - repeat x n times
 
@@ -158,10 +201,12 @@
 ;; => "apples,bananas,grapes"
 
 
-(use '[clojure.string :only (join)])
+;; join - idiom for: (apply str (interpose separator sequence))
 
+(require '[clojure.string :refer [join]])
 (join \, ["apples" "bananas" "grapes"])
 ;; => "apples,bananas,grapes"
+
 
 ;; take an arbitrary number of arguments and create a collection
 
@@ -194,14 +239,21 @@
 (take 10 (filter odd? (whole-numbers)))
 ;; => (1 3 5 7 9 11 13 15 17 19)
 
+
 ;; (take-while pred coll) - form a sequence while pred is true
 
-(take-while (complement #{\a\e\i\o\u}) "the-quick-brown-fox")
+(def vowel? #{\a \e \i \o \u})
+(def consonant? (complement vowel?))
+
+(take-while consonant? "the-quick-brown-fox")
 ;; => (\t \h)
+
+;; sets can act as functions that look up values in the set.
+;; complement reverses the behavior of another (pred?) function. 
 
 ;; (drop-while pred coll) - drops while true
 
-(drop-while (complement #{\a\e\i\o\u}) "the-quick-brown-fox")
+(drop-while  consonant?"the-quick-brown-fox")
 ;; => (\e \- \q \u \i \c \k \- \b \r \o \w \n \- \f \o \x)
 
 
@@ -234,8 +286,17 @@
 (some even? [1 3 5])
 ;; => nil
 
+;; some returns the value of the first match, nil otherwise
+
 (some identity [nil false 1 nil 2])
 ;; => 1
+
+(some identity [nil false nil false])
+;; => nil
+
+;; linear search for an element in a collection
+(some #{3} (range 20))
+;; => 3
 
 ;; (not-every? pred coll)
 ;; (not-any? pred coll)
@@ -261,6 +322,10 @@
 (map #(+ 2 %) [1 2 3 4 5])
 ;; => (3 4 5 6 7)
 
+(map #(format "<p>%s</p>" %) ["the" "quick" "brown" "fox"])
+;; => ("<p>the</p>" "<p>quick</p>" "<p>brown</p>" "<p>fox</p>")
+
+;; multiple collections
 (map #(format "<%s>%s</%s>" %1 %2 %1)
      ["h1" "h2" "h3" "h1"] ["the" "quick" "brown" "fox"])
 ;; => ("<h1>the</h1>" "<h2>quick</h2>" "<h3>brown</h3>" "<h1>fox</h1>")
@@ -293,16 +358,31 @@
 
 ;; for comprehension
 
+;; Input list(s)
+;; Placeholder bindings for elements in the input lists
+;; Predicates on the elements
+;; An output form that produces output from the elements of the input lists that satisfy the predicates
+
+;; previous map example
 (for [word ["the" "quick" "brown" "fox"]]
   (format "<p>%s</p>" word))
 ;; => ("<p>the</p>" "<p>quick</p>" "<p>brown</p>" "<p>fox</p>")
 
+;; filter example using a :when clause
 (take 10 (for [n (whole-numbers) :when (even? n)] n))
 ;; => (2 4 6 8 10 12 14 16 18 20)
 
+;; :while clause continues the evaluation only while it's expression holds
 (for [n (whole-numbers) :while (even? n)] n)
 ;; => ()
 
+(for [n (whole-numbers) :while (odd? n)] n)
+;; => (1)
+
+(for [n (whole-numbers) :while (#(< % 4) n)] n)
+;; => (1 2 3)
+
+;; positions on a chess board
 (for [file "ABCDEFGH" rank (range 1 9)] (format "%c%d" file rank))
 ;; => ("A1" "A2" "A3" "A4" "A5" "A6" "A7" "A8" "B1" "B2" "B3" "B4" "B5" "B6" "B7" "B8" "C1" "C2" "C3" "C4" "C5" "C6" "C7" "C8" "D1" "D2" "D3" "D4" "D5" "D6" "D7" "D8" "E1" "E2" "E3" "E4" "E5" "E6" "E7" "E8" "F1" "F2" "F3" "F4" "F5" "F6" "F7" "F8" "G1" "G2" "G3" "G4" "G5" "G6" "G7" "G8" "H1" "H2" "H3" "H4" "H5" "H6" "H7" "H8")
 
@@ -315,9 +395,10 @@
 
 ;; see primes.clj
 
-(use 'wonderland.primes)
+(require '[wonderland.primes :refer :all])
 
 (def ordinals-and-primes (map vector (iterate inc 1) primes))
+;; => #'wonderland.sequences/ordinals-and-primes
 
 (take 5 (drop 1000 ordinals-and-primes))
 ;; => ([1001 7927] [1002 7933] [1003 7937] [1004 7949] [1005 7951])
@@ -328,7 +409,7 @@
 (def x (for [i (range 1 3)] (do (println i) i)))
 ;; => #'wonderland.sequences/x
 
-(doall x)
+(doall x) ; force Clojure to walk the elements and returns elements as a result
 ;; 1
 ;; 2
 ;; => (1 2)
@@ -341,8 +422,9 @@
 ;; => nil
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Clojure make Java seq-able
+;;; Clojure makes Java seq-able
 
 ;; Collections
 ;; Regular expressions
@@ -369,14 +451,17 @@
 (count (System/getProperties))
 ;; => 57
 
-;; Strings are seq-able
+;; sequences are immutable even if the underlying collection is mutable.
+
+
+;; Strings are sequences so  are seq-able
 (first "Hello") ;; => \H
 
 (rest "Hello") ;; => (\e \l \l \o)
 
 (cons \H "ello") ;; => (\H \e \l \l \o)
 
-(reverse "hello")
+(reverse "hello") ;; probably not what we want.
 ;; => (\o \l \l \e \h)
 
 (apply str (reverse "hello"))
@@ -391,12 +476,13 @@
     (when match
       (println match)
       (recur (re-find m)))))
+;; => nil
 ;; the
 ;; quick
 ;; brown
 ;; fox
 
-;; use re-seq
+;; use re-seq - it exposes the immutable seq over the matches
 
 (re-seq #"\w+" "the quick brown fox")
 ;; => ("the" "quick" "brown" "fox")
@@ -425,10 +511,11 @@
 (map #(.getName %) (.listFiles (File. ".")))
 ;; => (".gitignore" ".lein-repl-history" ".nrepl-port" "CHANGELOG.md" "doc" "LICENSE" "project.clj" "README.md" "src" "target" "test")
 
-;; but map already calls 'seq'
+;; because map already calls 'seq'
 (map #(.getName %) (.listFiles (File. ".")))
 ;; => (".gitignore" ".lein-repl-history" ".nrepl-port" "CHANGELOG.md" "doc" "LICENSE" "project.clj" "README.md" "src" "target" "test")
 
+;; file-seq recursively traverses the directory tree.
 (count (file-seq (File. ".")))
 ;; => 35
 
@@ -444,25 +531,25 @@
 ;; => (#object[java.io.File 0x650c935e ".\\src\\wonderland"] #object[java.io.File 0x5eedd1fb ".\\src\\wonderland\\sequences.clj"])
 
 
-;;; Seq-ing a Stream
+;;; Seq-ing a Stream - line-seq
 
-(use '[clojure.java.io :only (reader)])
+(require '[clojure.java.io :refer [reader]])
 
 (take 3 (line-seq (reader "src/wonderland/primes.clj")))
 ;; => ("(ns wonderland.primes)" "" ";; Taken from clojure.contrib.lazy-seqs")
 
-;; using with-open
+;; using with-open for sources that need to be closed
 
 (with-open [rdr (reader "src/wonderland/primes.clj")]
   (count (line-seq rdr)))
 ;; => 22
 
-;;; program
-(use '[clojure.java.io :only (reader)])
+;;; program that counts the lines of Clojure code in a dirctory tree.
+(require '[clojure.java.io :refer [reader]])
 
 (defn non-blank? [line] (if (re-find #"\S" line) true false))
 
-(defn non-svn? [file] (not (.contains (.toString file) ".svn")))
+(defn non-git? [file] (not (.contains (.toString file) ".git")))
 
 (defn clojure-source? [file] (.endsWith (.toString file) ".clj"))
 
@@ -470,17 +557,17 @@
   (reduce
    +
    (for [file (file-seq base-file)
-         :when (and (clojure-source? file) (non-svn? file))]
+         :when (and (clojure-source? file) (non-git? file))]
      (with-open [rdr (reader file)]
        (count (filter non-blank? (line-seq rdr)))))))
 
-(clojure-loc (java.io.File. "c:/src/Clojure"))
-;; => 8638
+(clojure-loc (java.io.File. "c:/src/Clojure/Living-Clojure/wonderland"))
+;; => 2826
 
 
 ;;; Seq-ing XML
 
-(use '[clojure.xml :only (parse)])
+(require '[clojure.xml :refer [parse]])
 
 (parse (java.io.File. "resource/compositions.xml"))
 
@@ -493,7 +580,6 @@
 ;;    :content [{:tag :name, :attrs nil, :content ["Requiem"]}]}]}
 
 ;; extracts just the composers
-
 (for [x (xml-seq
          (parse (java.io.File. "resource/compositions.xml")))
       :when (= :composition (:tag x))]
@@ -525,14 +611,14 @@
 (pop [1 2 3])
 ;; => [1 2]
 
-;; get returns an indexed value
+;; get returns an indexed value on a vector
 (get [:a :b :c] 1)
 ;; => :b
 
 (get [:a :b :c] 5)
 ;; => nil
 
-
+;; vectors are look up functions
 ([:a :b :c] 1)
 ;; => :b
 
@@ -544,7 +630,6 @@
 ;; => [0 1 :two 3 4]
 
 ;; (subvec avec start end?) ; returns a subvector
-
 (subvec [1 2 3 4 5] 3)
 ;; => [4 5]
 
@@ -561,7 +646,6 @@
 ;; (keys map)
 ;; (vals map)
 
-
 (keys {:sundance "spaniel", :darwin "beagle"})
 ;; => (:sundance :darwin)
 
@@ -577,6 +661,9 @@
 (get {:sundance "spaniel", :darwin "beagle"} :snoopy)
 ;; => nil
 
+(get {:sundance "spaniel", :darwin "beagle"} :snoopy "not found")
+;; => "not found"
+
 ;; maps are functions on keys
 ({:sundance "spaniel", :darwin "beagle"} :darwin)
 ;; => "beagle"
@@ -584,9 +671,20 @@
 ({:sundance "spaniel", :darwin "beagle"} :snoopy)
 ;; => nil
 
+({:sundance "spaniel", :darwin "beagle"} :snoopy "not found")
+;; => "not found"
+
+
 ;; keys are also functions
 (:darwin {:sundance "spaniel", :darwin "beagle"})
 ;; => "beagle"
+
+(:snoopy {:sundance "spaniel", :darwin "beagle"})
+;; => nil
+
+(:snoopy {:sundance "spaniel", :darwin "beagle"} "not found")
+;; => "not found"
+
 
 ;; (contains? map key) ; check if key exists in map
 
@@ -606,6 +704,7 @@
 ;; => :score-not-found
 
 ;; functions for building new maps:
+
 ;; assoc - new map with added pair
 ;; dissoc - new map with a pair removed
 ;; select-keys - new map keeping only pairs with keys
@@ -627,6 +726,7 @@
 
 (merge song {:size 8118166 :time 507245})
 ;; => {:name "Angus Dei", :artist "Krzystof Penderecki", :album "Polish Reqiem", :genre "Classical", :size 8118166, :time 507245}
+
 
 ;; (merge-with merge-fn & maps)
 
@@ -664,6 +764,11 @@
 (set/select #(= 1 (.length %)) languages)
 ;; => #{"d" "c"}
 
+(set/select #(= 1 (count %)) languages)
+;; => #{"d" "c"}
+
+
+
 ;; relation between relational algebra
 ;;  Algerbra   SQL     Clojure
 ;;  Relation   Table   set-like
@@ -689,31 +794,52 @@
 ;; (rename relation rename-map)
 
 (set/rename compositions {:name :title})
-;; => #{{:composer "Giuseppe Verdi", :title "Requiem"} {:composer "W. A. Mozart", :title "Requiem"} {:composer "J. S. Bach", :title "The Art of the Fugue"} {:composer "J. S. Bach", :title "Musical Offering"}}
+;; => #{{:composer "Giuseppe Verdi", :title "Requiem"}
+;;      {:composer "W. A. Mozart", :title "Requiem"}
+;;      {:composer "J. S. Bach", :title "The Art of the Fugue"}
+;;      {:composer "J. S. Bach", :title "Musical Offering"}}
+
 
 ;; (select pred relation) - returns maps for which a predicate is true - analogous to WHERE
 (set/select #(= (:name %) "Requiem") compositions)
-;; => #{{:name "Requiem", :composer "Giuseppe Verdi"} {:name "Requiem", :composer "W. A. Mozart"}}
+;; => #{{:name "Requiem", :composer "Giuseppe Verdi"}
+;;      {:name "Requiem", :composer "W. A. Mozart"}}
+
 
 ;; (project relation keys) - SELECT that specifies a subset of columns
 (set/project compositions [:name])
-;; => #{{:name "The Art of the Fugue"} {:name "Musical Offering"} {:name "Requiem"}}
+;; => #{{:name "The Art of the Fugue"}
+;;      {:name "Musical Offering"}
+;;      {:name "Requiem"}}
+
 
 ;; cross product
 
 (for [m compositions c composers] (concat m c))
-;; (([:name "Musical Offering"] [:composer "J. S. Bach"]  [:composer "Giuseppe Verdi"] [:country "Italy"])
-;;  ([:name "Musical Offering"] [:composer "J. S. Bach"] [:composer "J. S. Bach"] [:country "Germany"])
-;;  ([:name "Musical Offering"] [:composer "J. S. Bach"] [:composer "W. A. Mozart"] [:country "Austria"])
-;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "Giuseppe Verdi"] [:country "Italy"])
-;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "J. S. Bach"] [:country "Germany"])
-;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"] [:composer "W. A. Mozart"] [:country "Austria"])
-;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "Giuseppe Verdi"] [:country "Italy"])
-;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "J. S. Bach"] [:country "Germany"])
-;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"] [:composer "W. A. Mozart"] [:country "Austria"])
-;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "Giuseppe Verdi"] [:country "Italy"])
-;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "J. S. Bach"] [:country "Germany"])
-;;  ([:name "Requiem"] [:composer "W. A. Mozart"] [:composer "W. A. Mozart"] [:country "Austria"]))
+;; (([:name "Musical Offering"] [:composer "J. S. Bach"]
+;;   [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Musical Offering"] [:composer "J. S. Bach"]
+;;   [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Musical Offering"] [:composer "J. S. Bach"]
+;;   [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"]
+;;   [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"]
+;;   [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "The Art of the Fugue"] [:composer "J. S. Bach"]
+;;   [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"]
+;;   [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"]
+;;   [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Requiem"] [:composer "Giuseppe Verdi"]
+;;   [:composer "W. A. Mozart"] [:country "Austria"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"]
+;;   [:composer "Giuseppe Verdi"] [:country "Italy"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"]
+;;   [:composer "J. S. Bach"] [:country "Germany"])
+;;  ([:name "Requiem"] [:composer "W. A. Mozart"]
+;;   [:composer "W. A. Mozart"] [:country "Austria"]))
 
 (set/join compositions composers)
 ;; #{{:composer "W. A. Mozart", :country "Austria", :name "Requiem"}
@@ -722,9 +848,12 @@
 ;;   {:composer "J. S. Bach", :country "Germany", :name "The Art of the Fugue"}}
 
 (set/join composers nations {:country :nation})
-;; #{{:composer "W. A. Mozart", :country "Austria", :nation "Austria", :language "German"}
-;;   {:composer "J. S. Bach", :country "Germany", :nation "Germany", :language "German"}
-;;   {:composer "Giuseppe Verdi", :country "Italy", :nation "Italy", :language "Italian"}}
+;; #{{:composer "W. A. Mozart", :country "Austria",
+;;    :nation "Austria", :language "German"}
+;;   {:composer "J. S. Bach", :country "Germany",
+;;    :nation "Germany", :language "German"}
+;;   {:composer "Giuseppe Verdi", :country "Italy",
+;;    :nation "Italy", :language "Italian"}}
 
 
 (set/project
