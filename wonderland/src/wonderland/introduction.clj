@@ -69,3 +69,10 @@
   (r/source instance?)
   )
 
+
+;; removing defs
+(def thing 1) ; value of thing is now 1
+                                        ; do some stuff with thing
+(alter-var-root #'thing (constantly nil)) ; value of thing is now nil
+
+(ns-unmap 'user 'foo)
