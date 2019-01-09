@@ -25,6 +25,10 @@
   (map #(* point-size %)
        [(pt 0) (pt 1) 1 1]))
 
+;; (add-points [10 10] [-1 0])  ; move left by one
+;; => [9 10]
+
+
 (defn create-apple []
   {:location [(rand-int width) (rand-int height)]
    :color (Color. 210 50 90)
@@ -41,20 +45,53 @@
   (assoc snake :body (cons (add-points (first body) dir)
                            (if grow body (butlast body)))))
 
+;; (move (create-snake))
+;; {:body ([2 1]),
+;;  :dir [1 0],
+;;  :type :snake,
+;;  :color #object[java.awt.Color 0x5e587058 "java.awt.Color[r=15,g=160,b=70]"]}
+
+;; (move (create-snake) :grow)
+;; {:body ([2 1] [1 1]),
+;;  :dir [1 0],
+;;  :type :snake,
+;;  :color #object[java.awt.Color 0x20aea399 "java.awt.Color[r=15,g=160,b=70]"]}
+
 
 (defn win? [{body :body}]
   (>= (count body) win-length))
+
+;; (win? {:body [[1 1]]})
+;; => false
+;; (win? {:body [[1 1] [1 2] [1 3] [1 4] [1 5]]})
+;; => true
 
 (defn head-overlaps-body? [{[head & body] :body}]
   (contains? (set body) head))
 
 (def lose? head-overlaps-body?)
 
+;; (lose? {:body [[1 1] [1 2] [1 3]]})
+;; => false
+;; (lose? {:body [[1 1] [1 2] [1 1]]})
+;; => true
+
 (defn eats? [{[snake-head] :body} {apple :location}]
   (= snake-head apple))
 
+;; (eats? {:body [[1 1] [1 2]]} {:location [2 2]})
+;; => false
+;; (eats? {:body [[2 2] [1 2]]} {:location [2 2]})
+;; => true
+
 (defn turn [snake newdir]
   (assoc snake :dir newdir))
+
+;; (turn (create-snake) [0 -1])
+;; {:body ([1 1]),
+;;  :dir [0 -1],
+;;  :type :snake,
+;;  :color #object[java.awt.Color 0x30a7d0ec "java.awt.Color[r=15,g=160,b=70]"]}
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -65,8 +102,16 @@
           (ref-set snake (create-snake)))
   nil)
 
-(def test-snake (ref nil))
-(def test-apple (ref nil))
+
+(comment ;; test reset
+  (def test-snake (ref nil))
+  (def test-apple (ref nil))
+
+  (reset-game test-snake test-apple)
+
+  @test-snake
+  @test-apple
+  )
 
 
 (defn update-direction [snake newdir]
@@ -81,21 +126,22 @@
      (alter snake move)))
   nil)
 
-(reset-game test-snake test-apple)
+(comment ;; test
+  (reset-game test-snake test-apple)
 
-;; @test-snake
-;; @test-apple
+  ;; @test-snake
+  ;; @test-apple
 
-(dosync (alter test-apple assoc :location [1 1]))
-;; => {:location [1 1], :color #object[java.awt.Color 0x2de98407 "java.awt.Color[r=210,g=50,b=90]"], :type :apple}
+  (dosync (alter test-apple assoc :location [1 1]))
+  ;; => {:location [1 1], :color #object[java.awt.Color 0x2de98407 "java.awt.Color[r=210,g=50,b=90]"], :type :apple}
 
-(update-positions test-snake test-apple)
-;; => nil
+  (update-positions test-snake test-apple)
+  ;; => nil
 
-(:body @test-snake)
-;; => ([2 1] [1 1])
+  (:body @test-snake)
+  ;; => ([2 1] [1 1])
 
-
+  )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The Snake GUI
 
