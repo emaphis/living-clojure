@@ -587,4 +587,357 @@ p
   (format "%s is in %s" name city))
 ;; => "Bob is in Boston"
 
+
 ;;; Creating Functions: `fn`
+
+;; `fn` special form for creating functions
+;; which includes features of `let` and `do`
+
+;; a simple function
+(fn [x]
+  (+ 10 x))
+
+;; The arguments to a function are matched to each name or destructuring from
+;; base on their positions int the calling form.
+
+((fn [x]
+   (+ 10 x)) 8) ;; => 18
+
+;; 8 is bound to `x` - equivalent to the `let` form:
+(let [x 8]
+  (+ 10 x)) ;; => 18
+
+;; functions of multiple arguments.
+((fn [x y z] (+ x y z))
+ 3 4 12)
+;; => 19
+
+(let [x 3
+      y 4
+      z 12]
+  (+ x y z))
+;; => 19
+
+;; functions with multiple arities
+(def strange-adder (fn adder-self-reference
+                     ([x] (adder-self-reference x 1))
+                     ([x y] (+ x y))))
+
+(strange-adder 10)
+;; => 11
+(strange-adder 10 50)
+;; => 60
+
+;; Mutually recursive functions with `letfn`
+
+(letfn [(odd? [n]
+          (if (zero? n)
+            false
+            (even? (dec n))))
+        (even? [n]
+          (or (zero? n)
+              (odd? (dec n))))]
+  (odd? 11))
+;; => true
+
+(letfn [(odd? [n]
+          (if (zero? n)
+            false
+            (even? (dec n))))
+        (even? [n]
+          (or (zero? n)
+              (odd? (dec n))))]
+  (odd? 12))
+;; => false
+
+(letfn [(odd? [n]
+          (if (zero? n)
+            false
+            (even? (dec n))))
+        (even? [n]
+          (or (zero? n)
+              (odd? (dec n))))]
+  (even? 11))
+;; => false
+
+
+;;; `defn` builds on `fn`.
+;;  `defn` encapsulates `def` and `fn`
+
+;; these two definitions are equivalent.
+(def strange-adder (fn strange-adder
+                     ([x] (strange-adder x 1))
+                     ([x y] (+ x y))))
+
+(defn strange-adder
+  ([x] (strange-adder x 1))
+  ([x y] (+ x y)))
+
+
+;; Single arity functions can be defined with additional parentheses eliminated
+
+(def redundant-adder (fn redundant-adder
+                       [x y z]
+                       (+ x y z)))
+
+(defn redundant-adder
+  [x y z]
+  (+ x y z))
+
+
+;;; Destructuring function arguments
+
+;; Variadic functions
+
+(defn concat-rest
+  [x & rest]                            ; rest is a `seq`
+  (apply str (butlast rest)))
+
+(concat-rest 0 1 2 3 4)
+;; => "123"
+
+
+(defn make-user
+  [& [user-id]]
+  {:user-id (or user-id
+                (str (java.util.UUID/randomUUID)))})
+
+(make-user)
+;; => {:user-id "56186418-eb4e-4a57-bb2e-86cfa82fef6d"}
+
+(make-user "Charley")
+;; => {:user-id "Charley"}
+
+
+;;; Keyword arguments
+;;  using the map destructuring of rest sequences idiom.
+
+(defn make-user
+  [username & {:keys [email join-date]
+               :or {join-date (java.util.Date.)}}]
+  {:username username
+   :join-date join-date
+   :email email
+   ;; 2.592e9 -> one month in ms
+   :exp-date (java.util.Date. (long (+ 2.592e9 (.getTime join-date))))})
+
+(make-user "Bobby")
+
+;; {:username "Bobby",
+;;  :join-date #inst "2019-01-17T03:45:38.695-00:00",
+;;  :email nil,
+;;  :exp-date #inst "2019-02-16T03:45:38.695-00:00"}
+
+(make-user "Bobby"
+           :join-date (java.util.Date. 119 0 1)
+           :email "bobby@example.com")
+
+;; {:username "Bobby",
+;;  :join-date #inst "2019-01-01T05:00:00.000-00:00",
+;;  :email "bobby@example.com",
+;;  :exp-date #inst "2019-01-31T05:00:00.000-00:00"}
+
+
+;; destructuring the rest argument map using types of key values besides keywords
+
+(defn foo
+  [& {k ["m" 9]}]
+  (inc k))
+
+(foo ["m" 9] 19)
+;; => 20
+
+
+;;; pre- and postconditions
+
+
+;;; Function literals
+
+;; these anonymous functions are equivalent
+
+(fn [x y] (Math/pow x y))
+;; => #function[programming-clojure.ch01-welcome/eval7173/fn--7174]
+
+#(Math/pow %1 %2)
+;; => #function[programming-clojure.ch01-welcome/eval7181/fn--7182]
+
+(read-string "#(Math/pow %1 %2)")
+;; => (fn* [p1__7187# p2__7188#] (Math/pow p1__7187# p2__7188#))
+
+;; not implicit `do` form
+(fn [x y]
+  (println (str x \^ y))
+  (Math/pow x y))
+
+;; requires and explicit `do`
+#(do
+   (println (str %1 \^ %2))
+   (Math/pow %1 %2))
+
+;;; Arity and arguments specified using unnamed positional symbols
+;; equivalent
+
+#(Math/pow %1 %2)
+#(Math/pow % %2)
+
+
+;;  variadic functions
+
+(fn [x & rest]
+  (- x (apply + rest)))
+
+#(- % (apply + %&))
+
+;; Function literals cannot be nested
+
+(fn [x]
+  (fn [y]
+    (+ x y)))
+
+;; #( #(+ % %2))  no no
+
+
+;;; Conditionals: `if`
+;;  Clojure's sole primitive conditional operator
+
+;; logical truth is anything other than `nil` or `false`.
+(if "hi" \t)
+;; => \t
+(if 42 \t)
+;; => \t
+(if nil "unevaluated" \f)
+;; => \f
+(if false "unevaluated" \f)
+;; => \f
+(if (not true) \t)
+;; => nil
+
+;; other conditionals `when` `cond` `if-let` `when-let` are
+;; build in terms of `if`.
+
+
+;;; Looping: `loop` and `recur`
+;;  `doseq` and `dotimes` imperative looping constructs are built in
+;;  terms of `recur`
+
+(loop [x 5]                             ; implicit `let`
+  (if (neg? x)
+    x
+    (recur (dec x))))                   ; transfers control to loop head.
+;; => -1
+
+;; loop heads are also set up by functions
+
+(defn countdown
+  [x]
+  (if (zero? x)
+    :blastoff!
+    (do (println x)
+        (recur (dec x)))))
+
+(countdown 5)
+;; 5
+;; 4
+;; 3
+;; 2
+;; 1
+;; => :blastoff!
+
+
+;; Appropriate use of `recur`
+;; usually use higher-level looping or iteration forms, `doseq` or `dotimes`
+;; `map` `reduce` or `for`
+
+
+;;; Referring to Vars: `var`
+
+(def x 5)
+
+x
+;; => 5
+
+;; refer to the var itself.
+(var x)
+;; => #'programming-clojure.ch01-welcome/x
+
+;; reader syntax
+#'x
+;; => #'programming-clojure.ch01-welcome/x
+
+'#'x
+;; => (var x)
+
+
+;;; Java Interop: `.` and `new`
+
+;; All Java interop flow through `.` and `new`
+
+
+;;; Exception Handling: `try` and `throw`
+;;  Java style exception handling.
+
+;;; Specialized Mutation: `set!`
+;;  Java style setter methods.
+;;  * Thread local value of vars that have non-root binding: dynamic scope.
+;;  * Set the value of a Java field.
+;;  * mutable fields in `deftype`.
+
+
+;;; Primitive locking: `monitor-enter` and `monitor-exit`.
+
+;;  synchronizing locking primitives, never use these,
+;; use the higher level versions.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Putting it all together.
+
+;; given
+(defn average
+  [numbers]
+  (/ (apply + numbers) (count numbers)))
+
+;; * This is simply a Clojure datastructure. (Homoiconicity).
+;; * Lists are evaluated as function calls.
+;; * Given namespaces, symbols are then evaluated in the datastructure.
+
+;; the `defn` is shorthand for:
+(def average (fn average
+               [numbers]
+               (/ (apply + numbers) (count numbers))))
+
+
+;;; `eval`
+;; scalars `eval` to themselves
+(eval :foo)
+;; => :foo
+(eval [1 2 3])
+;; => [1 2 3]
+(eval "text")
+;; => "text"
+
+;; lists `eval` to function calls
+(eval '(average [60 80 100 400]))
+;; => 160
+
+;; `read` of `read-string` produce Clojure values from their
+;; textual representations
+
+(eval (read-string "(average [60 80 100 400])"))
+;; => 160
+
+;; use `recur` to loop:
+
+;; A naive reimplementation of Clojure's REPL.
+
+(defn embedded-repl
+  "A naive Clojure REPL implementation. Enter `:quit`
+  to exit."
+  []
+  (print (str (ns-name *ns*) ">>> "))
+  (flush)
+  (let [expr (read)
+        value (eval expr)]
+    (when (not= :quit value)
+      (println value)
+      (recur))))
