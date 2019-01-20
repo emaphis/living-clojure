@@ -1,4 +1,4 @@
-(ns htdp.ch1-05-booleans
+(ns htdp.ch01.sec05-booleans
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :refer :all]))
@@ -22,7 +22,6 @@ false ;; => false
 (not true) ;; => false
 (not false) ;; => true
 
-(source not)
 
 ;; Ex 7: Boolean expressions can express some everyday problems. Suppose you
 ;; want to decide whether today is an appropriate day to go to the mall. You go

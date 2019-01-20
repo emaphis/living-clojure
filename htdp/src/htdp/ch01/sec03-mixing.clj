@@ -1,4 +1,4 @@
-(ns htdp.ch1-03-mixing
+(ns htdp.ch01.sec03-mixing
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :refer :all]))
@@ -8,8 +8,6 @@
 
 ;; Mixed String and other data functions
 ;; count, nth, parseInt
-
-
 
 ;; `count` is BSL's `string-length`
 ;; String -> Number

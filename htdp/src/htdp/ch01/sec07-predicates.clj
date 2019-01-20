@@ -1,4 +1,4 @@
-(ns htdp.ch1-07-predicates
+(ns htdp.ch01.sec07-predicates
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :refer :all]))

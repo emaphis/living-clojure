@@ -1,11 +1,10 @@
-(ns htdp.ch1-02-strings
+(ns htdp.ch01.sec02-strings
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :refer :all]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Arithmetic of Strings
-
 
 ;; `str` is the equivalent of BSL's `string-append`
 

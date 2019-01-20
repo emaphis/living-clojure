@@ -1,4 +1,4 @@
-(ns htdp.ch1-06-mixed-booleans
+(ns htdp.ch01.sec06-mixed-boolean
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]
             [clojure.string :refer :all]))
@@ -16,5 +16,7 @@
 (if (= x 0) 0 (/ 1 x))
 ;; => 0
 
-(string= "green" "yellow")
+(string=? "green" "yellow")
 ;; => false
+(string=? "green" "green")
+;; => true

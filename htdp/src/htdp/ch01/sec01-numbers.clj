@@ -1,4 +1,4 @@
-(ns htdp.ch1-01-numbers
+(ns htdp.ch01.sec01-numbers
   (:require [htdp.util :refer :all]
             [clojure.repl :refer :all]))
 
