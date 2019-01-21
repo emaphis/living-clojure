@@ -1,0 +1,7 @@
+* Functions
+** Definitions
+Programs consist of two types of definitions
+- Constant definitions
+- Function definitions
+
+Important point: Define one function per task.
