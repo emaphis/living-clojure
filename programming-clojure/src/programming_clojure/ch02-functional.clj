@@ -40,8 +40,8 @@
 ;; another consequence of mutable objects
 (defn print-number
   [n]
-  (println (.intValue n))
-  (.setInt n 42))
+  (println (.intValue n))               ; side effect
+  (.setInt n 42))                       ; insane side effect
 
 (print-number five)
 ;; 6
@@ -49,11 +49,12 @@
 (= five six)
 ;; => false
 (= five (StatefulInteger. 42))
-;; => true
+;; => true - oops 1
 
 ;; Mutable object can lead to strange results.
 
 ;;; the safety of values.
+;; using a vector as a key
 (def h {[1,2] 3})
 (h [1 2])
 ;; => 3
@@ -85,7 +86,7 @@ h
 ;;; First-Class and Higher-Order Functions
 ;;  Functions as datatypes.
 
-;; call_twice
+;; call_twice - OK if `f` has side-effects
 (defn call-twice [f x]
   (f x)
   (f x))
@@ -97,6 +98,7 @@ h
 
 ;; Clojure functions are just functions - not members of classes
 
+;; Members of namespaces and not classes
 (max 5 6)
 ;; => 6
 
@@ -120,12 +122,14 @@ h
 (map * [1 2 3 4] [5 6 7 8])
 ;; => (5 12 21 32)
 
+
 ;; `reduce` accepts a function of two parameters and a collection accumulating
 ;; a value
 
 (reduce max [0 -3 10 48])
 ;; => 48
 
+;; evaluation stream.
 (max 0 -3)
 ;; => 0
 (max 0 10)
@@ -142,7 +146,7 @@ h
 (reduce
  (fn [mp vc]
    (assoc mp vc (* vc vc)))
- {}
+ {}                                     ; initial value
  [1 2 3 4])
 ;; => {1 1, 2 4, 3 9, 4 16}
 
