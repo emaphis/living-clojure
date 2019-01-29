@@ -2,14 +2,14 @@
   (:require [clojure.repl :refer :all]))
 
 
-(defmacro ...
+(defn ...
   ""
-  ([] `(println "error: must be implemented"))
-  ([a]  `(println "error: must be implemented"))
-  ([a b]  `(println "error: must be implemented"))
-  ([a b c]  `(println "error: must be implemented"))
-  ([a b c d]  `(println "error: must be implemented"))
-  ([a b c d e]  `(println "error: must be implemented")))
+  ([] ~(println "error: must be implemented"))
+  ([a]  ~(println "error: must be implemented"))
+  ([a b]  ~(println "error: must be implemented"))
+  ([a b c]  ~(println "error: must be implemented"))
+  ([a b c d]  ~(println "error: must be implemented"))
+  ([a b c d e]  ~(println "error: must be implemented")))
 
 (comment
 
@@ -40,3 +40,23 @@
   (compare "m" "m") ;; => 0
   (compare "z" "m") ;; => 13
   )
+
+;; tail recursion
+
+
+(defn what [coll]
+  (loop [item (first coll)
+         coll coll]
+    (if (empty? (rest coll))
+      item
+      (recur (first (rest coll)) (rest coll)))))
+
+(defn what-2 [coll]
+  (loop [[item & remaining] coll]
+    (if (seq remaining)
+      item
+      (recur remaining))))
+
+(what-2 [1 2 3 4])
+(what-2 '(1 2 3 4))
+(what-2 #{1 2 3 4})
