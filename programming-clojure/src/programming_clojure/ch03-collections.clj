@@ -170,6 +170,7 @@
 (next "Clojure") ;; => (\l \o \j \u \r \e)
 
 ;; `rest` vs. `next`
+;; `rest` returns and empty sequence, while `next` returns `nil`.
 (rest [1]) ;; => ()
 (next [1]) ;; => nil
 (rest nil) ;; => ()
@@ -184,6 +185,10 @@
 (def y [])
 (= (next y)
    (seq (rest y)))
+
+;; identity
+;; (= (next ...)
+;;    (seq (rest ...)))
 
 ;; Sequences are not iterators
 (doseq [x (range 3)]
@@ -282,7 +287,7 @@
 (count rands)
 ;; => 10
 
-;; using built in functions
+;; using built in functions using composition
 (repeatedly 10 (partial rand-int 50))
 ;; => (26 15 25 10 42 34 7 37 20 27)
 
@@ -373,7 +378,7 @@
        2 :p)
 ;; => [-12 4 :p]
 
-;; you can also use assoc to append to vectors\with the caveat that you need to
+;; you can also use assoc to append to vectors \ with the caveat that you need to
 ;; know what the new valuefs index will be:
 (assoc v 3 10) ;; => [1 2 3 10]
 
@@ -439,3 +444,546 @@
 ;; => "not found"
 
 ;; beware of `false` too.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Indexed
+;;  `nth`
+;; indices are the new pointers - low level
+;; corollary - IndexOutOfBoundsException is the new core-dump.
+
+;; comparing `nth` and `get` on vectors
+(nth [:a :b :c] 2) ;; => :c
+(get [:a :b :c] 2) ;; => :c
+
+;; (nth [:a :b :c] 3)
+;; 1. Unhandled java.lang.IndexOutOfBoundsException
+(get [:a :b :c] 3) ;; => nil
+
+;; (nth [:a :b :c] -1)
+;; 1. Unhandled java.lang.IndexOutOfBoundsException
+(get [:a :b :c] -1) ;; => nil
+
+;; but you can provide a default return value
+(nth [:a :b :c] -1 :not-found) ;; => :not-found
+(get [:a :b :c] -1 :not-found) ;; => :not-found
+
+;; different meanings:  `nth` only works with numerical indices and works on
+;; many things that can be numerically indexed: vectors, lists, sequences,
+;; Java arrays, Java lists, strings, and regular expression matches.
+;; `get` is more general, it works on any associative type and treats numberical
+;; indices as keys.
+
+;; `get` is more resilient. Returns `nil` when key is not found and returns `nil`
+;; when the subject is not supported.
+(get 42 0) ;; => nil
+;; (nth 42 0)
+;; 1. Unhandled java.lang.UnsupportedOperationException
+;; nth not supported on this type: Long
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Stack
+
+;; Last-in, first-out semantics (LIFO)
+;; * `conj` for pushing a value onto the stack (conveniently reusing the
+;;   collection-generalized operation)
+;; * `pop`  for obtaining the stack with its top value removed
+;; * `peek` for obtaining the value on the top of the stack
+
+;; lists and vectors can be used as stacks
+
+(conj '() 1) ;; => (1)
+(conj '(2 1) 3) ;; => (3 2 1)
+(peek '(3 2 1)) ;; => 3
+(pop '(3 2 1)) ;; => (2 1)
+(pop '(2 1))  ;; => (1)
+(pop '(1))  ;; => ()
+
+(conj [] 1)   ;; => [1]
+(conj [1 2] 3) ;; => [1 2 3]
+(peek [1 2 3]) ;; => 3
+(pop [1 2 3]) ;; => [1 2]
+(pop [1]) ;; => []
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Set
+
+;; Associative
+(get #{1 2 3} 2) ;; => 2
+(get #{1 2 3} 4) ;; => nil
+(get #{1 2 3} 4 :not-found) ;; => :not-found
+
+;; To be complete set requires `disj`
+(disj #{1 2 3} 3)   ;; => #{1 2}
+(disj #{1 2 3} 3 1) ;; => #{2}
+
+;; sets are mostly used as a concrete type
+;; clojure.set - provides the set operations....
+;; `subset?` `superset?` `union` `intersection` `project`
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Sorted
+;; Collections that participate in the sorted abstraction guarantee that their
+;; values will be maintained in a stable ordering that is optionally defined by
+;; a predicate or implementation of a special `comparator` interface.
+;; * `rseq` which returns a seq of a collectionfs values in reverse, with the
+;;   guarantee that doing so will return in constant time
+;; * `subseq` which returns a seq of a collectionfs values that fall within a
+;;   specified range of keys
+;; * `rsubseq` the same as subseq, but the seq is in reversed order
+
+(def sm (sorted-map :z 5 :x 9 :y 0 :b 2 :a 3 :c 4))
+sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
+(rseq sm) ;; => ([:z 5] [:y 0] [:x 9] [:c 4] [:b 2] [:a 3])
+(subseq sm <= :c) ;; => ([:a 3] [:b 2] [:c 4])
+(subseq sm > :b <= :y)  ;; => ([:c 4] [:x 9] [:y 0])
+(rsubseq sm > :b <= :y) ;; => ([:y 0] [:x 9] [:c 4])
+
+;; The compare function defines the default sort: ascending, supporting all
+;; Clojure scalars and sequential collections, sorting lexicographically at each
+;; level
+
+;; equal
+(compare 2 2) ;; => 0
+;; less than
+(compare "ab" "abc") ;; => -1
+;; greater than
+(compare ["a" "b" "c"] ["a" "b"]) ;; => 1
+;; less than
+(compare ["a" 2] ["a" 2 0]) ;; => -1
+
+
+;;; Comparators and predicates to define ordering.
+
+(sort < (repeatedly 10 #(rand-int 100)))
+;; => (13 22 29 34 41 47 50 50 76 87)
+(sort-by first > (map-indexed vector "Clojure"))
+;; => ([6 \e] [5 \r] [4 \u] [3 \j] [2 \o] [1 \l] [0 \C])
+
+;; `-` negates a sort.
+(sorted-map-by compare :z 5 :x 9 :y 0 :b 2 :a 3 :c 4)
+;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
+(sorted-map-by (comp - compare) :z 5 :x 9 :y 0 :b 2 :a 3 :c 4)
+;; => {:z 5, :y 0, :x 9, :c 4, :b 2, :a 3}
+
+;; sort order defines equality within a sorted map or set
+
+(defn magnitude
+  [x]
+  (-> x Math/log10 Math/floor))
+
+(magnitude 100);; => 2.0
+(magnitude 100000) ;; => 5.0
+
+(defn compare-magnitude
+  "magnitude comparison predicate"
+  [a b]
+  (- (magnitude a) (magnitude b)))
+
+;; TODO: why doesn't this work?
+((comparator compare-magnitude) 10 10000) ;; => -1
+((comparator compare-magnitude) 100 10)  ;; => -1
+((comparator compare-magnitude) 10 10) ;; => -1
+
+;; using `compare-magnitude` with a sorted collection
+(sorted-set-by compare-magnitude 10 1000 500)
+;; => #{10 500 1000}
+(conj *1 600)
+;; => #{10 500 1000}
+(disj *1 500)
+;; => #{10 1000}
+(contains? *1 1000)
+;; => true
+
+;; `compare-magnitude` can be rewritten to ensure that only equivalent numbers
+;; are considered equal
+
+(defn compare-magnitude
+  [a b]
+  (let [diff (- (magnitude a) (magnitude b))]
+    (if (zero? diff)
+      (compare a b)
+      diff)))
+
+(sorted-set-by compare-magnitude 10 1000 500)
+;; => #{10 500 1000}
+(conj *1 600)
+;; => #{10 500 600 1000}
+(disj *1 750)
+;; => #{10 500 600 1000}
+
+
+;; `subseq` and `rsubseq` continue to work as expected.
+(sorted-set-by compare-magnitude 10 1000 500 670 1239)
+;; => #{10 500 670 1000 1239}
+(def ss *1)
+(subseq ss > 500)
+;; => (670 1000 1239)
+(subseq ss > 500 <= 1000)
+;; => (670 1000)
+(rsubseq ss > 500 <= 1000)
+;; => (1000 670)
+
+;; One amusing use of these functions is to implement linear interpolation:
+(defn interpolate
+  "Takes a collection of points (as [x y] tuples), returning a function
+  which is a linear interpolation between those points."
+  [points]
+  (let [results (into (sorted-map) (map vec points))]
+    (fn [x]
+      (let [[xa ya] (first (rsubseq results <= x))
+            [xb yb] (first (subseq results > x))]
+        (if (and xa xb)
+          (/ (+ (* ya (- xb x)) (* yb (- x xa)))
+             (- xb xa))
+          (or ya yb))))))
+
+;; three known points, [0 0], [10 10], and [15 5]:
+(def f (interpolate [[0 0] [10 10] [15 5]]))
+(map f [2 10 12])
+;; => (2 10 8)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Concise collection access
+
+;;; Collections are functions.
+
+(get [:a :b :c] 2) ;; => :c
+(get {:a 5 :b 6} :b) ;; => 6
+(get {:a 5 :b 6} :c 7) ;; => 7
+(get #{1 2 3} 3) ;; => 3
+
+;; equivalent calls
+([:a :b :c] 2) ;; => :c
+({:a 5 :b 6} :b) ;; => 6
+({:a 5 :b 6} :c 7) ;; => 7
+(#{1 2 3} 3) ;; => 3
+
+;; Indices provided for vector lookups must also be within the range of
+;; the vector, just as with `nth`:
+
+;; ([:a :b :c] -1)
+;; 1. Unhandled java.lang.IndexOutOfBoundsException
+
+
+;;; Collections keys are (often) functions.
+
+(get {:a 5 :b 6} :b) ;; => 6
+(get {:a 5 :b 6} :c 7) ;; => 7
+(get #{:a :b :c} :d) ;; => nil
+
+;; equivalent expressions
+
+(:b {:a 5 :b 6}) ;; => 6
+(:c {:a 5 :b 6} 7)  ;; => 7
+(:b #{:a :b :c}) ;; => :b
+(:d #{:a :b :c}) ;; => nil
+
+('a {'a 1 'b 2}) ;; => 1
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Idiomatic usage.
+
+;; using keywords as functions since this avoids null pointer exceptions
+(defn get-foo
+  [map]
+  (:foo map))
+
+(get-foo nil) ;; => nil
+
+(defn get-bar
+  [map]
+  (map :bar))
+
+;; (get-bar nil)
+;; 1. Unhandled java.lang.NullPointerException
+
+;; Also (coll :foo) assumes that `coll` is a function, but that is only true for
+;; Clojure data structures.
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Collections and keys and higher-order functions
+
+;; Using keywords symbols and collection are functions you can use them as
+;; inputs to higher-order functions.
+
+(map :name [{:age 21 :name "David"}
+            {:gender :f :name "Suzanne"}
+            {:name "Sara" :location "NYC"}])
+;; => ("David" "Suzanne" "Sara")
+
+;; `some` searches for the first value in a sequence that returns a logically
+;; true from a provided predicate;
+
+(some #{1 3 7} [0 2 4 5 6]) ;; => nil
+(some #{1 3 7} [0 2 3 4 5 6 7]) ;; => 3
+
+;; `filter` is a more general version of this
+
+(filter :age [{:age 21 :name "David"}
+              {:gender :f :name "Suzanne"}
+              {:name "Sara" :location "NYC"}])
+;; => ({:age 21, :name "David"})
+
+(filter (comp (partial <= 25) :age) [{:age 21 :name "David"}
+                                     {:gender :f :name "Suzanne" :age 20}
+                                     {:name "Sara" :location "NYC" :age 34}])
+;; => ({:name "Sara", :location "NYC", :age 34})
+
+;; Beware of the `nil` (again)
+(remove #{5 7} (cons false (range 10)))
+;; => (false 0 1 2 3 4 6 8 9)
+
+(remove #{5 7 false} (cons false (range 10)))
+;; => (false 0 1 2 3 4 6 8 9)
+
+;; prefer `contains?`
+(remove (partial contains? #{5 7 false}) (cons false (range 10)))
+;; => (0 1 2 3 4 6 8 9)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Data Structure Types
+
+;;; Lists
+'(1 2 3) ;; => (1 2 3)
+'(1 2 (+ 1 2)) ;; => (1 2 (+ 1 2))
+(list 1 2 (+ 1 2)) ;; => (1 2 3)
+
+(list? '(1 2 3)) ;; => true
+
+
+;;; Vectors
+[1 2 3] ;; => [1 2 3]
+(vector 1 2 3) ;; => [1 2 3]
+(vec (range 5)) ;; => [0 1 2 3 4]
+
+(vector? [1 2 3]) ;; => true
+
+
+;; Vectors as tuples
+
+;; returning multiple values
+(defn euclidian-division
+  [x y]
+  [(quot x y) (rem x y)])
+
+(euclidian-division 42 8) ;; => [5 2]
+
+((juxt quot rem) 42 8) ;; => [5 2]
+
+;; paired with destructuring
+
+(let [[q r] (euclidian-division 53 7)]
+  (str "53/7 = " q " * 7 + " r))
+;; => "53/7 = 7 * 7 + 4"
+
+;; Problems with Tuples.
+;; * Tuples are not self-documenting
+;; * Tuples are inflexible. You have to fill the whole tuple.
+;;   They are not extendable.
+
+
+;;; Sets
+
+#{1 2 3} ;; => #{1 3 2}
+
+;; This doesn't work
+;; #{1 2 3 3}
+;; 1. Caused by java.lang.IllegalArgumentException
+;;  Duplicate key: 3
+
+(hash-set 1 2 3 3) ;; => #{1 3 2}
+(hash-set :a :b :c :d)  ;; => #{:c :b :d :a}
+
+;; from other collections
+(set [1 6 1 8 3 7 7]) ;; => #{7 1 6 3 8}
+
+;; This actually works with anything that is ""seqable"", and allows for some
+;; very succinct idioms given that sets are functions themselves:
+
+(apply str (remove (set "aeiouy") "vowels are useless"))
+;; => "vwls r slss"
+
+(defn numeric? [s] (every? (set "0123456789") s))
+
+(numeric? "123") ;; => true
+(numeric? "12h") ;; => false
+(numeric? [1 2 3]) ;; => false
+
+
+;;; Maps
+
+{:a 5 :b 6}
+
+;; {:a 1 :a 5}
+;; 1. Caused by java.lang.IllegalArgumentException
+;;  Duplicate key: :a
+
+(hash-map :a 5 :b 6) ;; => {:b 6, :a 5}
+
+;; keys and vals
+
+(def m {:a 1 :b 2 :c 3})
+
+(keys m) ;; => (:a :b :c)
+(vals m) ;; => (1 2 3)
+
+;; short cuts for...
+(map key m) ;; => (:a :b :c)
+(map val m) ;; => (1 2 3)
+
+
+;;; Maps as ad-hoc stucts
+;;   Since map values can be of any type, they are frequently used as simple,
+;;   flexible models, most often with keywords for keys to identify each field
+;;   (also called slots).
+
+(def playlist
+  [{:title "Elephant", :artist "The White Stripes", :year 2003}
+   {:title "Helioself", :artist "Papas Fritas", :year 1997}
+   {:title "Stories from the City, Stories from the Sea",
+    :artist "PJ Harvey", :year 2000}
+   {:title "Buildings and Grounds", :artist "Papas Fritas", :year 2000}
+   {:title "Zen Rodeo", :artist "Mardi Gras BB", :year 2002}])
+
+;; Querying with keys
+(map :title playlist)
+;; => ("Elephant" "Helioself" "Stories from the City, Stories from the Sea"
+;;     "Buildings and Grounds" "Zen Rodeo")
+
+;; access with associative destructuring
+(defn summarize [{:keys [title artist year]}]
+  (str title " / " artist " / " year))
+
+(map summarize playlist)
+;; ("Elephant / The White Stripes / 2003"
+;;  "Helioself / Papas Fritas / 1997"
+;;  "Stories from the City, Stories from the Sea / PJ Harvey / 2000"
+;;  "Buildings and Grounds / Papas Fritas / 2000"
+;;  "Zen Rodeo / Mardi Gras BB / 2002")
+
+
+;;; Other usages of maps.
+;;   Maps can be used as summaries, indexes, or translation tables,
+;;   like database indexes and views.
+
+;; partitioning collections.
+(group-by #(rem % 3) (range 10))
+;; => {0 [0 3 6 9], 1 [1 4 7], 2 [2 5 8]}
+
+(group-by :artist playlist)
+;; {"The White Stripes" [{:title "Elephant", :artist "The White Stripes", :year 2003}],
+;;  "Papas Fritas" [{:title "Helioself", :artist "Papas Fritas", :year 1997}
+;;                  {:title "Buildings and Grounds", :artist "Papas Fritas", :year 2000}],
+;;  "PJ Harvey" [{:title "Stories from the City, Stories from the Sea", :artist "PJ Harvey", :year 2000}],
+;;  "Mardi Gras BB" [{:title "Zen Rodeo", :artist "Mardi Gras BB", :year 2002}]}
+
+;; Indexing by two columns
+;;  (group-by (juxt :col1 :col2))
+
+;; Compute a summary of items for a given key rather than returning a vector of
+;; those items.
+;; Use group-by and then process each value to summarize it:
+
+;; (into {} (for [[k v] (group-by key-fn coll)]
+;;            [ (summarize v)]))
+
+
+(defn reduce-by
+  [key-fn f init coll]
+  (reduce (fn [summaries x]
+            (let [k (key-fn x)]
+              (assoc summaries k (f (summaries k init) x))))
+          {} coll))
+
+
+;; List of purchase orders to ACME Corp, represented using plain
+;; maps as gstructsh:
+
+(def orders
+  [{:product "Clock", :customer "Wile Coyote", :qty 6, :total 300}
+   {:product "Dynamite", :customer "Wile Coyote", :qty 20, :total 5000}
+   {:product "Shotgun", :customer "Elmer Fudd", :qty 2, :total 800}
+   {:product "Shells", :customer "Elmer Fudd", :qty 4, :total 100}
+   {:product "Hole", :customer "Wile Coyote", :qty 1, :total 1000}
+   {:product "Anvil", :customer "Elmer Fudd", :qty 2, :total 300}
+   {:product "Anvil", :customer "Wile Coyote", :qty 6, :total 900}])
+
+;; we can easily compute order totals by customer:
+(reduce-by :customer #(+ %1 (:total %2)) 0 orders)
+;; => {"Wile Coyote" 7200, "Elmer Fudd" 1200}
+
+;; get the customers for each product:
+(reduce-by :product #(conj %1 (:customer %2)) #{} orders)
+;; {"Clock" #{"Wile Coyote"},
+;;  "Dynamite" #{"Wile Coyote"},
+;;  "Shotgun" #{"Elmer Fudd"},
+;;  "Shells" #{"Elmer Fudd"},
+;;  "Hole" #{"Wile Coyote"},
+;;  "Anvil" #{"Elmer Fudd" "Wile Coyote"}}
+
+;; two-level breakup
+
+(fn [order]
+  [(:customer order) (:product order)])
+
+#(vector (:customer %) (:product %))
+
+(fn [{:keys [customer product]}]
+  [customer product])
+
+(juxt :customer :product)
+
+(reduce-by (juxt :customer :product)
+           #(+ %1 (:total %2)) 0 orders)
+;; {["Wile Coyote" "Clock"] 300,
+;;  ["Wile Coyote" "Dynamite"] 5000,
+;;  ["Elmer Fudd" "Shotgun"] 800,
+;;  ["Elmer Fudd" "Shells"] 100,
+;;  ["Wile Coyote" "Hole"] 1000,
+;;  ["Elmer Fudd" "Anvil"] 300,
+;;  ["Wile Coyote" "Anvil"] 900}
+
+
+(defn reduce-by-in
+  [keys-fn f init coll]
+  (reduce (fn [summaries x]
+            (let [ks (keys-fn x)]
+              (assoc-in summaries ks
+                        (f (get-in summaries ks init) x))))
+          {} coll))
+
+(reduce-by-in (juxt :customer :product)
+              #(+ %1 (:total %2)) 0 orders)
+{"Wile Coyote" {"Clock" 300,
+                "Dynamite" 5000,
+                "Hole" 1000,
+                "Anvil" 900},
+ "Elmer Fudd" {"Shotgun" 800,
+               "Shells" 100,
+               "Anvil" 300}}
+
+(def flat-breakup
+  {["Wile Coyote" "Anvil"] 900,
+   ["Elmer Fudd" "Anvil"] 300,
+   ["Wile Coyote" "Hole"] 1000,
+   ["Elmer Fudd" "Shells"] 100,
+   ["Elmer Fudd" "Shotgun"] 800,
+   ["Wile Coyote" "Dynamite"] 5000,
+   ["Wile Coyote" "Clock"] 300})
+
+(reduce #(apply assoc-in %1 %2) {} flat-breakup)
+;; {"Wile Coyote" {"Anvil" 900,
+;;                 "Hole" 1000,
+;;                 "Dynamite" 5000,
+;;                 "Clock" 300},
+;;  "Elmer Fudd" {"Anvil" 300,
+;;                "Shells" 100,
+;;                "Shotgun" 800}}
