@@ -987,3 +987,145 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
 ;;  "Elmer Fudd" {"Anvil" 300,
 ;;                "Shells" 100,
 ;;                "Shotgun" 800}}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Transients
+
+;; Transients vs. Persistents
+;; Don't guarantee older versions.
+;; Transient collections are mutable.
+
+(def x (transient []))
+(def y (conj! x 1))
+(count y) ;; => 1
+(count x) ;; => 1
+
+
+;;; A test
+
+(into #{} (range 5)) ;; => #{0 1 4 3 2}
+
+;; a reimplementation.
+
+(defn naive-into
+  [coll source]
+  (reduce conj coll source))
+
+(= (into #{} (range 500))
+   (naive-into #{} (range 500)))
+;; => true
+
+;; time the implementations
+
+(time (do (into #{} (range 1e6))
+          nil))
+;; "Elapsed time: 526.3549 msecs"
+
+(time (do (naive-into #{} (range 1e6))
+          nil))
+;; "Elapsed time: 805.8188 msecs"
+
+(defn faster-into
+  [coll source]
+  (persistent! (reduce conj! (transient coll) source)))
+
+
+(time (do (faster-into #{} (range 1e6))
+          nil))
+;; "Elapsed time: 514.1629 msecs"
+
+
+(defn transient-capable?
+  "Returns true if a transient can be obtained for the given collection
+   i.e. tests if (transient coll) will succeed."
+  [coll]
+  (instance? clojure.lang.IEditableCollection coll))
+
+;; a persistent collection used as the basis of a transient is unaffected.
+(def v [1 2])
+(def tv (transient v))
+(conj v 3) ;; => [1 2 3]
+
+;; turning a transient collection into a persistent one by using `persistent!`
+;; makes the source transient unusable
+(persistent! tv) ;; => [1 2]
+;; (get tv 0)
+;; 1. Unhandled java.lang.IllegalAccessError
+;; Transient used after persistent! call
+
+;; functions supported by transients
+(nth (transient [1 2]) 1) ;; => 2
+(get (transient {:a 1 :b 2}) :a) ;; => 1
+((transient {:a 1 :b 2}) :a) ;; => 1
+((transient [1 1]) 1) ;; => 1
+(find (transient {:a 1 :b 2}) :a) ;; => [:a 1] - opps works
+
+;; transients are functions too.
+
+;; seqs must be persistent
+;;  (seq (transient [1 2])) ;; doesn't work
+
+;; `conj!` `assoc!` `dissoc!` `disj!` `pop!`
+
+;; you must always use the results of transient functions or they may change.
+(let [tm (transient {})]
+  (doseq [x (range 100)]
+    (assoc! tm x 0))
+  (persistent! tm))
+;; => {0 0, 1 0, 2 0, 3 0, 4 0, 5 0, 6 0, 7 0}
+
+;; transients must be used in the thread created it.
+(let [t (transient {:a 4})]
+  @(future (get t :a)))
+;; => 4
+;; oops, works
+
+;;; transients don't compose.
+;;  `persistent!` will not traverse a hierarchy of nested transients you may
+;;   have created, so calling `persistent!` on the top level reference will not
+;;   apply to subcollections:
+(persistent! (transient [(transient {})]))
+;; => [#object[clojure.lang.PersistentArrayMap$TransientArrayMap 0x7347c2ee
+;;     "clojure.lang.PersistentArrayMap$TransientArrayMap@7347c2ee"]]
+
+;; transients don't have values semantics
+(= (transient [1 2]) (transient [1 2])) ;; => false
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Metadata
+
+;; Type declarations, access modifiers.
+;; Java annotations.
+
+;; Metadata can be attached to any Clojure data structure, sequence, record,
+;; symbol, or reference type, and always takes the form of a map
+
+(def a ^{:created (System/currentTimeMillis)}
+  [1 2 3])
+
+(meta a) ;; => {:created 1548906493453}
+
+;; Boolean metadata.
+(meta ^:private [1 2 3]) ;; => {:private true}
+(meta ^:private ^:dynamic [1 2 3])
+;; => {:dynamic true, :private true}
+
+(def b (with-meta a (assoc (meta a)
+                           :modified (System/currentTimeMillis))))
+(meta b)
+;; => {:created 1548906493453, :modified 1548906863399}
+(def b (vary-meta a assoc :modified (System/currentTimeMillis)))
+(meta b)
+;; => {:created 1548906493453, :modified 1548906933487}
+
+;; metadata doesn't change the value of data.
+(= a b) ;; => true
+a ;; => [1 2 3]
+b ;; => [1 2 3]
+(= ^{:a 5} 'any-value
+   ^{:b 4} 'any-value) ;; => true
+
+;; "modifying" a var doesn't change the metadata
+(meta (conj a 500)) ;; => {:created 1548906493453}
