@@ -5,4 +5,5 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]]
   :repl-options {:init-ns programming-clojure.core}
+  :profiles {:dev {:dependencies [[org.clojure/test.check "0.9.0"]]}}
   :java-source-paths ["src/java"])

@@ -581,12 +581,12 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
 (defn compare-magnitude
   "magnitude comparison predicate"
   [a b]
-  (- (magnitude a) (magnitude b)))
+  (neg? (- (magnitude a) (magnitude b))))
 
 ;; TODO: why doesn't this work?
 ((comparator compare-magnitude) 10 10000) ;; => -1
-((comparator compare-magnitude) 100 10)  ;; => -1
-((comparator compare-magnitude) 10 10) ;; => -1
+((comparator compare-magnitude) 100 10)  ;; => 1
+((comparator compare-magnitude) 75 10) ;; => 0
 
 ;; using `compare-magnitude` with a sorted collection
 (sorted-set-by compare-magnitude 10 1000 500)
@@ -1119,7 +1119,7 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
 (def b (vary-meta a assoc :modified (System/currentTimeMillis)))
 (meta b)
 ;; => {:created 1548906493453, :modified 1548906933487}
-
+l
 ;; metadata doesn't change the value of data.
 (= a b) ;; => true
 a ;; => [1 2 3]
