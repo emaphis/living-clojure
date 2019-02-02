@@ -378,8 +378,8 @@
        2 :p)
 ;; => [-12 4 :p]
 
-;; you can also use assoc to append to vectors \ with the caveat that you need to
-;; know what the new valuefs index will be:
+;; you can also use assoc to append to vectors - with the caveat that you need
+;; to know what the new value's index will be:
 (assoc v 3 10) ;; => [1 2 3 10]
 
 ;; ... sets  - values are associated with themselves
@@ -407,7 +407,7 @@
 ;; zero indexed
 
 ;;; Beware of `nil` values.
-;;  `get` returns `nil` when therefs no entry for a given key and when no
+;;  `get` returns `nil` when there's no entry for a given key and when no
 ;;   default value is provided. However, `nil` is a perfectly valid value.
 
 (get {:ethel nil} :lucy)  ;; => nil
@@ -529,9 +529,9 @@
 ;; Collections that participate in the sorted abstraction guarantee that their
 ;; values will be maintained in a stable ordering that is optionally defined by
 ;; a predicate or implementation of a special `comparator` interface.
-;; * `rseq` which returns a seq of a collectionfs values in reverse, with the
+;; * `rseq` which returns a seq of a collection's values in reverse, with the
 ;;   guarantee that doing so will return in constant time
-;; * `subseq` which returns a seq of a collectionfs values that fall within a
+;; * `subseq` which returns a seq of a collection's values that fall within a
 ;;   specified range of keys
 ;; * `rsubseq` the same as subseq, but the seq is in reversed order
 
@@ -583,7 +583,6 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
   [a b]
   (neg? (- (magnitude a) (magnitude b))))
 
-;; TODO: why doesn't this work?
 ((comparator compare-magnitude) 10 10000) ;; => -1
 ((comparator compare-magnitude) 100 10)  ;; => 1
 ((comparator compare-magnitude) 75 10) ;; => 0
@@ -591,12 +590,9 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
 ;; using `compare-magnitude` with a sorted collection
 (sorted-set-by compare-magnitude 10 1000 500)
 ;; => #{10 500 1000}
-(conj *1 600)
-;; => #{10 500 1000}
-(disj *1 500)
-;; => #{10 1000}
-(contains? *1 1000)
-;; => true
+(conj *1 600) ;; => #{10 500 1000}
+(disj *1 500) ;; => #{10 1000}
+(contains? *1 1000) ;; => true
 
 ;; `compare-magnitude` can be rewritten to ensure that only equivalent numbers
 ;; are considered equal
@@ -905,7 +901,7 @@ sm        ;; => {:a 3, :b 2, :c 4, :x 9, :y 0, :z 5}
 
 
 ;; List of purchase orders to ACME Corp, represented using plain
-;; maps as gstructsh:
+;; maps as "structs":
 
 (def orders
   [{:product "Clock", :customer "Wile Coyote", :qty 6, :total 300}
@@ -1129,3 +1125,104 @@ b ;; => [1 2 3]
 
 ;; "modifying" a var doesn't change the metadata
 (meta (conj a 500)) ;; => {:created 1548906493453}
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Realistic examples:
+
+;;; See life.clj
+;;;     maze.clj
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Manipulating zippers
+
+;; clojure.zip
+
+(require '[clojure.zip :as z])
+
+;; `node` - returns current node.
+;; `branch?` - whether the current note is a branch
+;; `children` - the child nodes for branches
+;; `lefts` - left siblings
+;; `rigths` - right siblings
+;; `root` -
+
+(def v [[1 2 [3 4]] [5 6]])
+
+(-> v z/vector-zip z/node)
+;; => [[1 2 [3 4]] [5 6]]
+
+(-> v z/vector-zip z/down z/node)
+;; => [1 2 [3 4]]
+
+(-> v z/vector-zip z/down z/right z/node)
+;; => [5 6]
+
+;; `remove` the current node
+;; `replace` it with another,
+;; `insert` a child node at the front
+;; `append` it to the rear.
+;; `edit` a node. edit uses the uniform update model
+;;  = in addition to the zipper, it takes a function `f` and extra arguments;
+;; the current node is then replaced by the result of applying `f` to itself and
+;; the extra arguments.
+
+(-> v z/vector-zip  z/root)
+;; => [[1 2 [3 4]] [5 6]]
+(-> v z/vector-zip z/down z/right (z/replace 56) z/node)
+;; => 56
+(-> v z/vector-zip z/down z/right (z/replace 56) z/root)
+;; => [[1 2 [3 4]] 56]
+(-> v z/vector-zip z/down z/right z/remove z/node)
+;; => 4
+(-> v z/vector-zip z/down z/right z/remove z/root)
+;; => [[1 2 [3 4]]]
+(-> v z/vector-zip z/down z/down z/right (z/edit * 42) z/root)
+;; => [[1 84 [3 4]] [5 6]]
+
+;;; Customers zippers
+
+;; Zippers are in general created using the `zipper` function, which accepts
+;; three functions, followed by the root node of the structure to which the
+;; zipper will be applied:
+;; * A predicate that returns true if a node can have children.
+;; * A function that, given a branch node, returns a seq of its children.
+;; * A function that returns a new branch node, given an existing node and a seq
+;; of children.
+
+;; HTML zipper
+;; The first item is the tag name
+;; The second may be the attributes map
+;; The remaining ones are children, including text nodes as strings.
+
+;; examples
+;; [:h1 "zipper"]
+;; [:a {:href "http://clojure.org/"} "Clojure"]
+
+(defn html-zip [root]
+  (z/zipper
+   vector?
+   (fn [[tagname & xs]]
+     (if (map? (first xs)) (next xs) xs))
+   (fn [[tagname & xs] children]
+     (into (if (map? (first xs)) [tagname (first xs)] [tagname])
+           children))
+   root))
+
+(defn wrap
+  "Wraps the current node in the specified tag and attributes."
+  ([loc tag]
+   (z/edit loc #(vector tag %)))
+  ([loc tag attrs]
+   (z/edit loc #(vector tag attrs %))))
+
+(def h [:body [:h1 "Clojure"]
+        [:p "What a wonderful language!"]])
+
+(-> h html-zip z/down z/right z/down (wrap :b) z/root)
+;; [:body [:h1 "Clojure"]
+;;  [:p [:b "What a wonderful language!"]]]
+
+;;; Ariadne's Zipper
+;; see maze.clj
