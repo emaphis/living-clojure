@@ -10,3 +10,7 @@ pom.xml.asc
 /.nrepl-port
 /out
 /.cljs_rhino_repl
+/repl
+.classpath
+.project
+.settings
