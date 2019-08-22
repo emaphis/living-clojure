@@ -14,15 +14,15 @@ Run with Leiningen 2.8.1 in particular.
 
 To run a standalown clojurescript repl
 
-lein trampoline cljsbuild repl-rhino
+    lein trampoline cljsbuild repl-rhino
 
 To run a browser based clojurescript repl
 
-lein trampoline cljsbuild repl-listen
+    lein trampoline cljsbuild repl-listen
 
 Compile clojurescript
 
-lein cljsbuild auto
+    lein cljsbuild auto
 
 To start a web server for the application, run:
 
