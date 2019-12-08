@@ -6,4 +6,5 @@
   :dependencies [[org.clojure/clojure "1.10.1"]]
   :main ^:skip-aot myapp.core
   :target-path "target/%s"
+  :java-source-paths ["src/java"]
   :profiles {:uberjar {:aot :all}})
