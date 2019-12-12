@@ -23,6 +23,7 @@
   (str "Result: " (+ f g)))
 
 (my-sum 2 2)
+;; => "Result: 4"
 
 
 ;;; `clojure.core`
@@ -154,7 +155,7 @@
 
 ;;; Collection Extraction
 
-(first [:a :b :c] );; => :a
+(first [:a :b :c]);; => :a
 (last [:a :b :c]) ;; => :c
 
 ;; extract the item from the first nested collection

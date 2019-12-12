@@ -16,7 +16,7 @@
 (let [{:keys [a c] :as complete} {:a "A" :b "B" :c "C" :d "D"}]
   (prn a c complete))
 
-;; `:ar` feature
+;; `:as` feature
 (def a-map {:a 1 :c 3})
 
 (let [{:keys [a b c] :as original-data
@@ -28,6 +28,8 @@
 (let [[x y & z] [:a :b :c :d]]
   (prn x y z)
   (first z))
+;; => :c
+
 
 ;; nested destructuring
 
