@@ -31,6 +31,14 @@
   [& args]
   (println "Hello, World!"))
 
+
+(comment
+
+  (+ 3 4)
+  (-main)
+  ())
+
+
 ;; Code evaluation
 ;; ctrl-alt-c enter      - Loading Current File and Dependencies
 ;; ctrl+alt+c e          - Evaluate Current Form Inline
@@ -57,7 +65,3 @@
 
 ;; ctrl+alt+c .          - Run custom commands, i.e. code snippets, at will
 
-
-(comment
-  (+ 3 4)
-  )
