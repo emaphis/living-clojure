@@ -129,3 +129,93 @@
     (is (= in12 (first '(3 2 1))))
     (is (= in12 (second [2 3 4])))
     (is (= in12 (last (list 1 2 3))))))
+
+
+;;; Ex 013 El.
+;;  The rest function will return all the items of a sequence except the first.
+
+(deftest test013
+  (testing "Sequences: rest"
+    (is (= '(20 30 40)  (rest [10 20 30 40])))))
+
+
+;;; Ex 014 El.
+;;  Clojure has many different ways to create functions.
+
+(deftest test14
+  (testing "Intro to Fucctions"
+    (is (= 8 ((fn add-five [x] (+ x 5)) 3)))
+    (is (= 8 ((fn [x] (+ x 5)) 3)))
+    (is (= 8 (#(+ % 5) 3)))))
+
+
+;;; Ex 015 El.
+;; Write a function which doubles a number.
+
+(defn fn15 [num]
+  (* 2 num))
+
+(deftest test015
+  (testing "Double down")
+  (is (= (fn15 2) 4))
+  (is (= (fn15 3) 6))
+  (is (= (fn15 11) 22)))
+
+
+;;; Ex 016 El.
+;;  Write a function which returns a personalized greeting.
+
+(defn fn16 [name]
+  (str "Hello, " name "!"))
+
+(deftest test016
+  (testing "Hello World"
+    (is (= (fn16 "Dave") "Hello, Dave!"))
+    (is (= (fn16 "Jenn") "Hello, Jenn!"))
+    (is (= (fn16 "Rhea") "Hello, Rhea!"))))
+
+
+;;; Ex 017 El.
+;; The map function takes two arguments: a function (f) and a sequence (s).
+;; Map returns a new sequence consisting of the result of applying f to each
+;; item of s. Do not confuse the map function with the map data structure.
+
+(def lst17 '(6 7 8))
+
+(deftest test017
+  (testing "Sequences: map"
+    (is (= lst17 (map #(+ % 5) '(1 2 3))))))
+
+
+;;; Ex 018 El.
+;;  The filter function takes two arguments: a predicate function (f) and a
+;;  sequence (s). Filter returns a new sequence consisting of all the items
+;;  of s for which (f item) returns true.
+
+(def lst18 '(6 7))
+
+(deftest test18
+  (testing "Sequences: filter"
+    (is (= lst18 (filter #(> % 5) '(3 4 5 6 7))))))
+
+
+;;; Ex 035 El.
+;;  Clojure lets you give local names to values using the special let-form.
+
+(def num35 7)
+
+(deftest test35
+  (testing "Local bindings"
+    (is (= num35 (let [x 5] (+ 2 x))))
+    (is (= num35 (let [x 3, y 10] (- y x))))
+    (is (= num35 (let [x 21] (let [y 3] (/ x y)))))))
+
+
+;;; Ex 036 El.
+;;  Can you bind x, y, and z so that these are all true?
+
+(deftest test36
+  (testing "Let it Be"
+    (is (= 10 (let [x 7 y 3 z 1] (+ x y))))
+    (is (= 4 (let [x 7 y 3 z 1] (+ y z))))
+    (is (= 1 (let [x 7 y 3 z 1] z)))))
