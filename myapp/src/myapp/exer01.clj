@@ -313,3 +313,101 @@
                     z)))
     (is (= lst145 (for [[x y] (partition 2 (range 20))]
                     (+ x y))))))
+
+;;; Day 4
+
+;;; Ex 020 - Easy - Seqs
+;;  Penultimate Element
+;;  Write a function which returns the second to last element from a sequence.
+
+(def fn20 (fn [coll]
+            (last (butlast coll))))
+
+(deftest test020
+  (testing "Penultimate Element"
+    (is (= (fn20 (list 1 2 3 4 5)) 4))
+    (is (= (fn20 ["a" "b" "c"]) "b"))
+    (is (= (fn20 [[1 2] [3 4]]) [1 2]))))
+
+
+;;; Ex 024 - Easy - seqs
+;;  Write a function which returns the sum of a sequence of numbers.
+
+(def fn24
+  (fn [coll]
+    (loop [acc 0, coll coll]
+      (if (empty? coll)
+        acc
+        (recur (+ acc (first coll))
+               (rest coll))))))
+
+(deftest test024
+  (testing "Sum it All Up"
+    (is (= (fn24 [1 2 3]) 6))
+    (is (= (fn24 (list 0 -2 5 5)) 8))
+    (is (= (fn24 #{4 2 1}) 7))
+    (is (= (fn24 '(0 0 -1)) -1))))
+
+
+;;; Ex 25 - Easy - seqs
+;;  Find the Odd Numbers 
+;;  Write a function which returns only the odd numbers from a sequence.
+
+(def fn25
+  (fn [coll]
+    (loop [acc '(), coll coll]
+      (if (empty? coll)
+        (reverse acc)
+        (if (odd? (first coll))
+          (recur (conj acc (first coll))
+                 (rest coll))
+          (recur acc (rest coll)))))))
+
+(deftest test0025
+  (testing "Find the Odd Numbers"
+    (is (= (fn25 [4 2 1 6]) '(1)))
+    (is (= (fn25 #{1 2 3 4 5}) '(1 3 5)))
+    (is (= (fn25 [2 2 4 6]) '()))
+    (is (= (fn25 [1 1 1 3]) '(1 1 1 3)))))
+
+
+;;; Ex 027 - Easy - seqs
+;;  Palindrome Detector
+;;  Write a function which returns true if the given sequence is a palindrome.
+;;  Hint: "racecar" does not equal '(\r \a \c \e \c \a \r)
+
+(def fn27
+  (fn [coll]
+    (= (seq coll) (reverse (seq coll)))))
+
+(deftest test027
+  (testing "Palindrome Detector"
+    (is (false? (fn27 '(1 2 3 4 5))))
+    (is (true? (fn27 "racecar")))
+    (is (true? (fn27 [:foo :bar :foo])))
+    (is (true? (fn27 '(1 1 3 3 1 1))))
+    (is (false? (fn27 '(:a :b :c))))))
+
+
+;;; Ex 032 - Easy - seqs
+;;  Duplicate a Sequence
+;;  Write a function which duplicates each element of a sequence.
+
+(def fn32
+  (fn [coll]
+    (loop [acc '() coll coll]
+      (if (empty? coll)
+        (reverse acc)
+        (let [fst (first coll)]
+          (recur (conj acc fst fst)
+                 (rest coll)))))))
+
+(deftest test032
+  (testing "Duplicate a Sequence"
+    (is (= (fn32 [1 2 3]) '(1 1 2 2 3 3)))
+    (is (= (fn32 [:a :a :b :b]) '(:a :a :a :a :b :b :b :b)))
+    (is (= (fn32 [[1 2] [3 4]]) '([1 2] [1 2] [3 4] [3 4])))
+    (is (= (fn32 [[1 2] [3 4]]) '([1 2] [1 2] [3 4] [3 4])))))
+
+
+;;; Day 5
