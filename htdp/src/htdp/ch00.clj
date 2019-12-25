@@ -1,11 +1,12 @@
 (ns htdp.ch00
-  (:require [htdp.util :refer :all]))
+  (:require [htdp.util :refer [---]]
+            [clojure.repl :refer [doc]]))
 
 
 (defn plop [n]
   (if (< n 6)
     (println "plop: " n)
-    (println n ...)))
+    (println n ---)))
 
 (defn run [n]
   (if (< n 10)

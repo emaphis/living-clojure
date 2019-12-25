@@ -1,6 +1,7 @@
 (ns myapp.exer01
   (:require [clojure.test :refer [deftest testing is]]))
 
+;; 4Clojure
 
 (deftest test-1
   (testing "Example test"
@@ -392,7 +393,7 @@
 ;;; Ex 032 - Easy - seqs
 ;;  Duplicate a Sequence
 ;;  Write a function which duplicates each element of a sequence.
-
+#_
 (def fn32
   (fn [coll]
     (loop [acc '() coll coll]
@@ -401,6 +402,10 @@
         (let [fst (first coll)]
           (recur (conj acc fst fst)
                  (rest coll)))))))
+
+(def fn32
+  (fn [coll]
+    (interleave coll coll)))
 
 (deftest test032
   (testing "Duplicate a Sequence"
