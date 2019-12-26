@@ -2,6 +2,16 @@
 
 Experiments with quil
 
+Basic example
+src/quil-exp/core.clj
+https://github.com/quil/quil/blob/master/README.md
+
+Dynamic development workflow
+src/quil-exp/dynamic.clj
+src/quil-exp/workflow.clj
+https://github.com/quil/quil/wiki/Dynamic-Workflow-%28for-REPL%29
+
+
 
 ## Usage
 
