@@ -11,7 +11,9 @@ src/quil-exp/dynamic.clj
 src/quil-exp/workflow.clj
 https://github.com/quil/quil/wiki/Dynamic-Workflow-%28for-REPL%29
 
-
+More extensive example
+src/quil-exp/quil-into.
+http://nbeloglazov.com/2014/05/29/quil-intro.html
 
 ## Usage
 
