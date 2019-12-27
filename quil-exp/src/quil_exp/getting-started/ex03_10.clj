@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-10
   (:require [quil.core :as q]))
 
+;; Drawing Order
 ;; Example 3-10: Put It in Reverse.
 ;; pg. 20.
 

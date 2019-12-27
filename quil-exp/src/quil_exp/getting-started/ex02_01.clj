@@ -1,7 +1,9 @@
 (ns quil-exp.getting-started.ex02-01
   (:require [quil.core :as q]))
 
-;; pg. 9 - A basic example.
+;; Your First Program
+;; Example 2-1: Draw an Ellipse
+;; pg. 9.
 
 ;;; ellipse(50, 50, 80 80);
 

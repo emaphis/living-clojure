@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-08
   (:require [quil.core :as q]))
 
+;; Basic Shapes
 ;; Example 3-8: Draw with Degrees.
 ;; pg. 19.
 

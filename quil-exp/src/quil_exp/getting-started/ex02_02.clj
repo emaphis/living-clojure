@@ -1,8 +1,9 @@
 (ns quil-exp.getting-started.ex02-02
   (:require [quil.core :as q]))
 
+;; Your First Program
 ;; Example 2-2: Make Circles.
-;; pg. 9
+;; pg. 9.
 
 (defn setup []
   (q/smooth))
@@ -18,4 +19,3 @@
   :size [480 120]
   :setup setup
   :draw draw)
-

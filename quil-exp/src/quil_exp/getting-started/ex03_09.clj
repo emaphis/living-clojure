@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-09
   (:require [quil.core :as q]))
 
+;; Drawing Order
 ;; Example 3-9: Control Your Drawing Order
 ;; pg. 20.
 

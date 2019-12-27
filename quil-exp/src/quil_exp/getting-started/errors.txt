@@ -1,0 +1,8 @@
+
+pg 23 - Example 3014.
+(q/ellipse-mode :corner)
+draws object in wrong location.
+
+pg 25 - Example 3-16.
+no-stroke.
+the outline doesn't  print.

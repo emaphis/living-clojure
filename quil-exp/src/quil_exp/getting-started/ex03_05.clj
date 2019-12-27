@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-05
   (:require [quil.core :as q]))
 
+;; Basic Shapes
 ;; Example 3-5: Draw a Rectangle
 ;; pg. 17.
 

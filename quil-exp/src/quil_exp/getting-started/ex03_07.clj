@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-07
   (:require [quil.core :as q]))
 
+;; Basic Shapes
 ;; Example 3-7: Draw Part of an Ellipse.
 ;; pg. 18.
 

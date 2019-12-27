@@ -1,6 +1,7 @@
 (ns quil-exp.getting-started.ex03-03
   (:require [quil.core :as q]))
 
+;; Basic Shapes
 ;; Example 3-3: Draw a Line
 ;; pg. 16.
 
