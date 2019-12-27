@@ -40,7 +40,7 @@
   (q/fill 153 204 255)        ; Set fill to light blue
   (q/ellipse 263 148 5 5)     ; Small eye 1
   (q/ellipse 296 130 4 4)     ; Small eye 2
-  (q/ellipse 305 162 3 3))    ; Small eye3
+  (q/ellipse 305 162 3 3))    ; Small eye 3
 
 
 (q/defsketch robot_01
