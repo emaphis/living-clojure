@@ -9,17 +9,16 @@
 
 (def EASING 0.04)
 
-(defn make-state [x y body-height neck-height neck-y radius]
+(defn make-state [x y body-height neck-height radius]
   {:x x :y y
    :body-height body-height
    :neck-height neck-height
-   :neck-y neck-y
    :radius radius})
 
 ;; none -> state
 (defn setup []
   (q/ellipse-mode :radius)
-  (make-state 60 440 160 70 0 45))
+  (make-state 60 440 160 70 45))
 
 ;; state -> state
 (defn update-state [state]
@@ -29,9 +28,8 @@
         y         (:y state)
         body-ht   (if (q/mouse-pressed?) 90 160)
         neck-ht   (if (q/mouse-pressed?) 16 70)
-        radius    (:radius state)
-        neck-y    (- y body-ht neck-ht radius)]
-    (make-state x y body-ht neck-ht neck-y radius)))
+        radius    (:radius state)]
+    (make-state x y body-ht neck-ht radius)))
 
 ;; state -> IO
 (defn draw [state]
@@ -43,10 +41,7 @@
         body-height (:body-height state)
         neck-height (:neck-height state)
         radius      (:radius state)
-        neck-y      (:neck-y state)]
-
-    (q/stroke-weight 2)
-    (q/background 0 153 204)
+        neck-y      (- y body-height neck-height radius)]
 
     ;;Neck
     (q/stroke 255)  ; White
@@ -65,9 +60,9 @@
     (q/rect (- x 45) (- y body-height) 90 (- body-height 33)) ; Main Body
 
     ;; Head
-    (q/fill 0)   ; Black
+    (q/fill 0)     ; Black
     (q/ellipse (+ x 12) neck-y radius radius) ; Head
-    (q/fill 255)
+    (q/fill 255)   ; White
     (q/ellipse (+ x 24) (- neck-y 6) 14 14)   ; eye
     (q/fill 0)     ; Black
     (q/ellipse (+ x 24) (- neck-y 6) 3 3)      ; Pupil
