@@ -25,10 +25,8 @@
 
 ;; state -> IO
 (defn draw [state]
-  ((let [x (:x state)]
-     (q/ellipse x 40 12 12)
-     (println ":D :D X=> " x)
-     #_(println (str (q/mouse-x) " : " x)))))
+  (q/ellipse (:x state) 40 12 12)
+  (println (q/mouse-x) " : " (:x state)))
 
 (q/defsketch example5_8
   :size [220 120]

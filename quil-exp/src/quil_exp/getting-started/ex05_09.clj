@@ -1,25 +1,40 @@
 (ns quil-exp.getting-started.ex05-09
-  (:require [quil.core :as q]))
+  (:require [quil.core :as q]
+            [quil.middleware :as m]))
 
 ;;;Follow
 ;; Example 5-9: Smooth Lines with Easing
 ;; pg. 56.
 
-(def x (atom 1.0))
-(def easing 0.01)
+(def EASING 0.05)
 
+;; states is a map with :x :y
+(defn make-state [x y px py weight]
+  {:x x :y y :px px :py py :weight weight})
+
+;; IO -> state 
 (defn setup []
-  (reset! x 1.0))
+  (q/stroke 0 102)
+  (make-state 1 1 1 1 1))
 
+;; IO, state -> state
+(defn update-state [state]
+  (let [px (:x state)
+        py (:y state)
+        x  (+ px (* (- (q/mouse-x) px) EASING))
+        y  (+ py (* (- (q/mouse-y) py) EASING))
+        wt (q/dist px py x y)]
+    (make-state x y px py wt)))
 
-(defn draw []
-  (let [target-x (q/mouse-x)
-        _ (swap! x #(+ % (* (- target-x %) easing)))]
-    (q/ellipse @x 40 12 12)
-    (println (str (q/mouse-x) " : " @x))))
+;; state -> IO
+(defn draw-state [state]
+  (q/stroke-weight (:weight state))
+  (q/line (:x state) (:y state) (:px state) (:py state)))
 
 
 (q/defsketch example5_9
-  :size [220 120]
+  :size [480 120]
   :setup setup
-  :draw draw)
+  :update update-state
+  :draw draw-state
+  :middleware [m/fun-mode])
