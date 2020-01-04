@@ -8,11 +8,12 @@
 (defn draw []
   (q/rect 120 60 80 80)
   (q/ellipse 120 60 80 80)
-  ;;(q/ellipse-mode :corner)
+  (q/ellipse-mode :corner)
   (q/rect 280 20 80 80)
   (q/ellipse 280 20 80 80))
 
 
 (q/defsketch example3_14
+  :title "On the Corner"
   :size [480 120]
   :draw draw)

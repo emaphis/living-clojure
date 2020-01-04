@@ -9,5 +9,6 @@
   (q/rect 180 60 220 40))
 
 (q/defsketch example3_5
+  :title "Draw a Rectangle"
   :size [480 120]
   :draw draw)

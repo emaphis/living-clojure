@@ -12,5 +12,6 @@
   (q/arc 390 60 80 80 (q/radians 45) (q/radians 225)))
 
 (q/defsketch example3_8
+  :title "Draw with Degrees"
   :size [480 120]
   :draw draw)

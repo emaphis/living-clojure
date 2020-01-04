@@ -12,5 +12,6 @@
   (q/rect 160 30 260 20))
 
 (q/defsketch example3_9
+  :title "Control Your Drawing Order"
   :size [480 120]
   :draw draw)

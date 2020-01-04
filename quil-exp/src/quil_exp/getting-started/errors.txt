@@ -1,7 +1,12 @@
 
-pg 23 - Example 3014.
-(q/ellipse-mode :corner)
+pg 23 - Example 3-14.
+(q/ellipse-mode :corner) - ellipseMode(CORNER);
 draws object in wrong location.
+:center - specifies the location of the ellipse as the center of the shape (default).
+:radius - similar to center, but the width and height parameters to ellipse specify the radius of the ellipse, rather than the diameter.
+:corner - draws the shape from the upper-left corner of its bounding box.
+:corners - uses the four parameters to ellipse to set two opposing corners of the ellipse's bounding box.
+
 
 pg 25 - Example 3-16.
 no-stroke.

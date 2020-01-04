@@ -11,5 +11,6 @@
   (q/ellipse 412   60  18  18))
 
 (q/defsketch example3_6
+  :title "Draw an Ellipse"
   :size [480 120]
   :draw draw)

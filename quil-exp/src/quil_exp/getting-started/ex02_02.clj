@@ -16,6 +16,7 @@
 
 
 (q/defsketch example2_2
+  :title "Make Circles"
   :size [480 120]
   :setup setup
   :draw draw)

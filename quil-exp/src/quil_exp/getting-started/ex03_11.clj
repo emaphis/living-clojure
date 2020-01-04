@@ -15,5 +15,6 @@
   (q/ellipse 389 60 90 90))
 
 (q/defsketch example3_11
+  :title "Set Stroke Weight"
   :size [480 120]
   :draw draw)

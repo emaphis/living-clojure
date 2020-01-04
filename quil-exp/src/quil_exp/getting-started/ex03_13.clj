@@ -17,5 +17,6 @@
 
 
 (q/defsketch example3_13
+  :title "Set Stroke Joins"
   :size [480 120]
   :draw draw)

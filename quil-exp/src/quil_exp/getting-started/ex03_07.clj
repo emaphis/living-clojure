@@ -12,5 +12,6 @@
   (q/arc 390 60 80 80 q/QUARTER-PI (+ q/PI q/QUARTER-PI)))
 
 (q/defsketch example3_7
+  :title "Part of an Ellipse"
   :size [480 120]
   :draw draw)

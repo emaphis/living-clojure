@@ -17,5 +17,6 @@
 
 
 (q/defsketch example3_12
-:size [480 120]
-:draw draw)
+  :title "Set Stroke Caps"
+  :size [480 120]
+  :draw draw)

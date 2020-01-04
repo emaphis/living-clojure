@@ -11,5 +11,6 @@
   (q/triangle 158 55 290 91 290 112))
 
 (q/defsketch example3_4
+  :title "Draw Basic Shapes"
   :size [480 120]
   :draw draw)
