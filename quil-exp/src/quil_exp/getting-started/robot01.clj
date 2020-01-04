@@ -1,8 +1,8 @@
 (ns quil-exp.getting-started.robot01
   (:require [quil.core :as q]))
 
-;; Custom Shapes
-;; Robot 01 - P5
+;; Drawing
+;; Robot 01 - Robot 1: Draw
 ;; pg. 32
 
 (defn draw []
@@ -44,5 +44,6 @@
 
 
 (q/defsketch robot_01
-  :size [729 489]
+  :title "Robot 1: Draw"
+  :size [720 480]
   :draw draw)

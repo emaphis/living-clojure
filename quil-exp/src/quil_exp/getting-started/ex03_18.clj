@@ -17,5 +17,6 @@
 
 
 (q/defsketch example3_18
+  :title "Set Transparency"
   :size [480 120]
   :draw draw)

@@ -19,5 +19,6 @@
 
 
 (q/defsketch example3_20
+  :title "Close the Gap"
   :size [480 120]
   :draw draw)

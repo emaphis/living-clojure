@@ -1,8 +1,22 @@
+;; used by background(), fill(), and stroke()
+
+0 -> 255
+
+255,   0,   0   - Red
+  0, 255,   0   - Green
+  0,   0, 255   - Blue
 
 
-0, 153, 204
-153, 204, 255
-255, 204, 0
+  0, 153, 204  - Blue
+153, 204, 255  - Light Blue
+255, 204,   0  - Orange
+0,  26,  51    - Dark blue
 
 
-255
+
+  0 - Black
+102 - Dark gray
+128 - Medium gray
+153 - Medium gray
+204 - Light gray
+255 - White

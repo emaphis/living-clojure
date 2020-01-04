@@ -16,5 +16,6 @@
 
 
 (q/defsketch example3_15
+  :title "Paint with Grays."
   :size [480 120]
   :draw draw)

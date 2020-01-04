@@ -20,5 +20,6 @@
 
 
 (q/defsketch example3_19
+  :title "Draw an Arrow"
   :size [480 120]
   :draw draw)

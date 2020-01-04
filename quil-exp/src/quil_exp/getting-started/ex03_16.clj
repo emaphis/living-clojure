@@ -15,5 +15,6 @@
 
 
 (q/defsketch example3_16
+  :title "Control Fill and Stroke"
   :size [480 120]
   :draw draw)

@@ -17,5 +17,6 @@
 
 
 (q/defsketch example3_17
+  :title "Draw with Color"
   :size [480 120]
   :draw draw)

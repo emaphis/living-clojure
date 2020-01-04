@@ -40,5 +40,6 @@
 
 
 (q/defsketch example3_21
+  :title "Create Some Creatures"
   :size [480 120]
   :draw draw)

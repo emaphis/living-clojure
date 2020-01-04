@@ -10,7 +10,7 @@ draws object in wrong location.
 
 pg 25 - Example 3-16.
 no-stroke.
-the outline doesn't  print.
+the outline doesn't  print. (should it?)
 
 ;; pg 95 Example 7-6
 need to use (fill 255) to see the font.
