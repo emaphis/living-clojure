@@ -64,10 +64,11 @@ stroke
 #AFD8AF  (175,216,175)
 #99CC99 (153,204,153)
 
-  0 - Black
- 51 -
-102 - Dark gray
-128 - Medium gray
-153 - Medium gray
-204 - Light gray
-255 - White
+#000000   0 - Black
+#333333  51 -
+#666666 102 - Dark gray
+#808080 128 - Medium gray
+#999999 153 - Medium gray
+#CCCCCC 204 - Light gray
+#FFFFFF 255 - White
+1
