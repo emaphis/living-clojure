@@ -1,6 +1,7 @@
 # myapp
 
 Getting Clojure - code
+Some expriments
 
 
 Copyright © 2019 Ed Maphis
