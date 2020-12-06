@@ -3,6 +3,10 @@
 
 ;;; Practically Clojure regex
 ;;; https://www.youtube.com/watch?v=iTimmZcNToY
+;;; https://purelyfunctional.tv/mini-guide/regexes-in-clojure/
+
+;;; Literal representation
+#"regex"
 
 ;; Dont do this..
 (let [m (re-matcher #"\w+" "the quick brown fox")]
@@ -225,6 +229,15 @@
 (re-matches #"(\w+)\s(\w+)" "Jenny Jetpack") ;; => ["Jenny Jetpack" "Jenny" "Jetpack"]
  
 
+(re-seq #"(...) (...)" "foo bar")
+;; => (["foo bar" "foo" "bar"])
+
+;; Clojure's regex syntax doesn't require excaping of backslash characters
+;; Java: "(\\d+)-(\\d+)"
+(re-seq #"(\d+)-(\d+)" "1-3")
+;; => (["1-3" "1" "3"])
+
+
 ;;; Destructure the results of the re-matches function
 ;;;  so we only use the two words
 
@@ -236,6 +249,20 @@
 
 (clojure.string/split "Jenny Jetpack" #"\s")
 ;; => ["Jenny" "Jetpack"]
+
+;; if it finds more than one match if returns groups in a vector
+(re-matches #"abc(.*)" "abcxyz")
+;; => ["abcxyz" "xyz"]
+
+
+;;; Matching with groups
+(re-matches #"abc" "xyz")
+;; => nil
+
+
+(re-matches #"abc" "abc")
+;; => "abc"
+
 
 
 ;;; Matching numbers
