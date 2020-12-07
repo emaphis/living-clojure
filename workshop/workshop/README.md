@@ -1,36 +1,8 @@
-# workshop
+# The Clojure Workshop
 
-FIXME: description
+https://www.packtpub.com/product/the-clojure-workshop/9781838825485
 
-## Installation
-
-Download from http://example.com/FIXME.
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar workshop-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2020 FIXME
+Copyright © 2020 Ed Maphis
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
