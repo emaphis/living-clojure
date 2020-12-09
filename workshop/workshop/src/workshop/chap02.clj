@@ -152,6 +152,133 @@ Math/PI
 ;; => "If you want to keep a secret, you must also hide it from yourself."
 
 
+;;; Booleans
+;; true false
+
+
+;;; Symbols - identifiers refering to something else
+
+(def foo "bar")
+foo
+;; => "bar"
+(defn add-2 [x] (+ x 2))
+add-2
+;; => #function[workshop.chap02/add-2]
+
+
+;;; Keywords
+
+:foo
+;; => :foo
+
+:another_keyword
+;; => :another_keyword
+
+
+;;; Collections
+;;   maps, sets, vectors, lists
+
+;;; Maps
+
+{:artist "David Bowtie" :song "The Man Who Mapped the World" :year 1970}
+;; => {:artist "David Bowtie", :song "The Man Who Mapped the World", :year 1970}
+
+{"David Bowtie" {"The Man Who Mapped the World" {:year 1970, :duration "4:01"}
+                 "Comma Oddity" {:year 1969, :duration "5:19"}}
+ "Crosby Stills Hash" {"Helplessly Mapping" {:year 1969, :duration "2:38"}
+                       "Almost Cut My Hair" {:year 1970, :duration "4:29", :featuring ["Neil Young", "Rich
+Hickey"]}}}
+
+
+;; hash-map function
+(hash-map :a 1 :b 2 :c 3)
+;; => {:c 3, :b 2, :a 1}
+
+;;{:name "Lucy" :age 32 :name "Hon"}  ; no duplicate key names
+
+{:name "Lucy" :age 32 :number-of-teeth 32}
+;; => {:name "Lucy", :age 32, :number-of-teeth 32}
+
+
+;;; Exercise 2.02: Using Maps
+
+(def favorite-fruit {:name "Kiwi", :color "Green" :kcal_per_100g 61 :distinguishig_mark "Hairy"})
+
+(get favorite-fruit :name)
+;; => "Kiwi"
+
+(get favorite-fruit :color)
+;; => "Green"
+
+;; fallback value
+
+(get favorite-fruit :taste)
+;; => nil
+
+(get favorite-fruit :taste "Very good 8/10")
+;; => "Very good 8/10"
+
+;; maps and key-words can be used as lookup functions
+
+(favorite-fruit :color)
+;; => "Green"
+
+(:color favorite-fruit)
+;; => "Green"
+
+;; fallback
+(:shape favorite-fruit "egg-like")
+;; => "egg-like"
+
+(assoc favorite-fruit :shape "egg-like")
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 61, :distinguishig_mark "Hairy", :shape "egg-like"}
+
+(assoc favorite-fruit :color "Brown")
+;; => {:name "Kiwi", :color "Brown", :kcal_per_100g 61, :distinguishig_mark "Hairy"}
+
+;; assoc compound data
+(assoc favorite-fruit :yearly_production_in_tonnes {:china 202500 :italy 541000 :new_zealand 412000 :iran 311000 :chile 225000})
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 61, :distinguishig_mark "Hairy", :yearly_production_in_tonnes {:china 202500, :italy 541000, :new_zealand 412000, :iran 311000, :chile 225000}}
+
+;; update a field
+(assoc favorite-fruit :kcal_per_100g (- (:kcal_per_100g favorite-fruit) 1))
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 60, :distinguishig_mark "Hairy"}
+
+(update favorite-fruit :kcal_per_100g dec)
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 60, :distinguishig_mark "Hairy"}
+
+(update favorite-fruit :kcal_per_100g - 10)
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 51, :distinguishig_mark "Hairy"}
+
+;; remove elements
+(dissoc favorite-fruit :distinguishig_mark)
+;; => {:name "Kiwi", :color "Green", :kcal_per_100g 61}
+(dissoc favorite-fruit :kcal_per_100g :color)
+;; => {:name "Kiwi", :distinguishig_mark "Hairy"}
+
+
+;;; Sets
+
+#{1 2 3 4 5}
+;; => #{1 4 3 2 5}
+
+;; hash-set function
+(hash-set :a :b :c :d)
+;; => #{:c :b :d :a}
+
+(set [:a :b :c])
+;; => #{:c :b :a}
+
+;; set doesn't error on duplicate entries
+(set ["No" "Copy" "Cats" "Cats" "Please"])
+;; => #{"Copy" "Please" "Cats" "No"}
+
+;; ordered set
+(sorted-set "No" "Copy" "Cats" "Cats" "Please")
+;; => #{"Cats" "Copy" "No" "Please"}
+
+
+
 
 
 
