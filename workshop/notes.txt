@@ -1,0 +1,38 @@
+Some notes for workshop project
+
+Cider notes
+
+Emacs:
+C-c C-x C-j C-j jack in
+
+C-c C-k    evaluate buffer
+C-c C-l    load file
+C-c M-n M-r refresh classpath
+C-c C-e    evaluate
+C-x C-e    ....
+C-c C-c    evaluate toplevel form.
+C-c C-v w  evaluate and replace.
+C-c M-e    evaluate to REPL
+C-c M-p    load form to REPL
+C-c C-z    jump to REPL
+C-c C-v n  evaluate the ns form
+C-c M-n M-n switch REPL to namepace
+
+M-.          Look up definition
+C-c C-d C-d  Look up documentation
+C-c C-d a    Apropos
+C-c C-d C-a  ......
+C-c C-c f   Apropos vars
+C-c C-d C-f ....
+
+C-c M-i     inspect expression
+C-c C-u     undefine symbol
+
+C-c C-t t   run test at point
+C-c C-t a   rerun text
+C-c C-t n   run tests for namespace
+C-c C-t l   run loaded tests
+C-c C-t p   run all tests for project
+C-c C-t r   rerun failed failed tests
+
+C-c C-q     quit

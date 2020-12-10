@@ -278,9 +278,212 @@ Hickey"]}}}
 ;; => #{"Cats" "Copy" "No" "Please"}
 
 
+;;; Exercise 2.03: Using Sets
+;; supported currencies
+
+(def supported-currencies #{"Dollar" "Japanese yen" "Euro" "Indian rupee" "British pound"})
+;; => #'workshop.chap02/supported-currencies
+
+(get supported-currencies "Dollar")
+;; => "Dollar"
+
+(get supported-currencies "Swiss franc")
+;; => nil
+
+;; just check for containment
+(contains? supported-currencies "Dollar")
+;; => true
+
+(contains? supported-currencies "Swiss franc")
+;; => false
+
+;; ("Dollar" supported-currencies)  ; Strings aren't functions
+
+;; add an element to a set - The Great and Mighty Conj
+(conj supported-currencies "Monopoly Money")
+;; => #{"Japanese yen" "Indian rupee" "Euro" "Dollar" "Monopoly Money" "British pound"}
+
+(conj supported-currencies "Monopoly Money" "Gold dragon" "Gil")
+;; => #{"Gold dragon" "Japanese yen" "Indian rupee" "Euro" "Dollar" "Monopoly Money" "British pound" "Gil"}
+
+;; remove items
+(disj supported-currencies "Dollar" "British pound")
+;; => #{"Japanese yen" "Indian rupee" "Euro"}
 
 
+;;; Vectors
 
+[1 2 3]
+;; => [1 2 3]
+
+;; vector function
+(vector 10 15 2 15 0)
+;; => [10 15 2 15 0]
+
+;; create a vector from another collection
+(vec #{1 2 3})
+;; => [1 3 2]
+
+;; polymorphic
+[nil :keyword "String" {:answers [:yep :nope]}]
+;; => [nil :keyword "String" {:answers [:yep :nope]}]
+
+;; Exercise 2.04: Using Vectors
+
+;; indexed by number
+(get [:a :b :c] 0)
+;; => :a
+
+(get [:a :b :c] 2)
+;; => :c
+
+(get [:a :b :c] 10)
+;; => nil
+
+(def fibonacci [0 1 1 2 3 5 8])
+;; => #'workshop.chap02/fibonacci
+
+(get fibonacci 6)
+;; => 8
+
+;; Vetors are funtions
+(fibonacci 6)
+;; => 8
+
+;; adding values.
+(conj fibonacci 13 21)
+;; => [0 1 1 2 3 5 8 13 21]
+
+(let [size (count fibonacci)
+      last-number (last fibonacci)
+      second-to-last-number (fibonacci (- size 2))]
+  (conj fibonacci (+ last-number second-to-last-number)))
+;; => [0 1 1 2 3 5 8 13]
+
+
+;;; Lists
+
+'(1 2 3)
+;; => (1 2 3)
+
+(+ 1 2 3)
+;; => 6
+
+'(+ 1 2 3)
+;; => (+ 1 2 3)
+
+;; list function
+(list :a :b :c)
+;; => (:a :b :c)
+
+(first '(:a :b :c :d))
+;; => :a
+
+(rest '(:a :b :c :d))
+;; => (:b :c :d)
+
+(nth '(:a :b :c :d) 2)
+;; => :c
+
+;;; Exercise 2.05: Using Lists
+
+(def my-todo (list "Feed the cat" "Clean the bathroom" "Save the world"))
+
+(cons "Go to work" my-todo)
+;; => ("Go to work" "Feed the cat" "Clean the bathroom" "Save the world")
+
+(conj my-todo "Go to work")
+;; => ("Go to work" "Feed the cat" "Clean the bathroom" "Save the world")
+
+(conj my-todo "Go to work" "Wash my socks")
+;; => ("Wash my socks" "Go to work" "Feed the cat" "Clean the bathroom" "Save the world")
+
+(rest my-todo)
+;; => ("Clean the bathroom" "Save the world")
+
+(rest my-todo)
+;; => ("Clean the bathroom" "Save the world")
+
+(nth my-todo 2)
+;; => "Save the world"
+
+
+;;; Collection and Sequence Abstractions
+
+;; Collections - maps, sets, vectors, lists
+;; Sequences - vectors lists  - particular order.
+
+
+(def language {:name "Clojure" 
+               :creator "Rich Hickey" 
+               :platforms ["Java" "JavaScript" ".NET"]})
+
+(count language)
+;; => 3
+
+(count #{})
+;; => 0
+
+(empty? language)
+;; => false
+
+(empty? [])
+;; => true
+
+;; A map is not sequencial because it doesn't have an order
+(seq language)
+;; => ([:name "Clojure"] [:creator "Rich Hickey"] [:platforms ["Java" "JavaScript" ".NET"]])
+
+(nth (seq language) 1)
+;; => [:creator "Rich Hickey"]
+
+;; collections are converted to seq by sequence functions, so you don't have to call the seq function
+(first #{:a :b :c})
+;; => :c
+
+(rest #{:a :b :c})
+;; => (:b :a)
+
+(last language)
+;; => [:platforms ["Java" "JavaScript" ".NET"]]
+
+;; put one collection into another collecyion
+(into [1 2 3 4] #{5 6 7 8})
+;; => [1 2 3 4 7 6 5 8]
+
+(into #{1 2 3 4} [5 6 7 8])
+;; => #{7 1 4 6 3 2 5 8}
+
+(into #{} [1 2 3 4])
+;; => #{1 4 3 2}
+
+;; pass a collection of tuples to put items into a map
+(into {} [[:a 1] [:b 2] [:c 3]])
+;; => {:a 1, :b 2, :c 3}
+
+(seq {:a 1 :b 2 :c 3})
+;; => ([:a 1] [:b 2] [:c 3])
+
+;; items are added to the fron of a list
+(into '() [1 2 3 4])
+;; => (4 3 2 1)
+
+(into (seq []) [1 2 3 4])
+;; => (4 3 2 1)
+
+;; concat behaves differently than into
+(concat '(1 2) '(3 4))
+;; => (1 2 3 4)
+(into '(1 2) '(3 4))
+;; => (4 3 1 2)
+
+(concat #{1 2 3} #{1 2 3 4}) 
+
+(concat {:a 1} ["Hello"])
+;; => ([:a 1] "Hello")
+
+;; sort
+(def alphabet #{:a :b :c :d :e :f})
 
 
 
