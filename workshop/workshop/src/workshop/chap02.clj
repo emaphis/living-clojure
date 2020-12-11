@@ -26,16 +26,17 @@ silly-string
 
 ;; String functions
 
-(str "That's the way you " "con" "te" "nate")
-;; => "That's the way you contenate"
+(str "That's the way you " "con" "ca" "te" "nate")
+;; => "That's the way you concatenate"
 
 (str *1 " - " silly-string)
-;; => "That's the way you contenate - I am immutble. I am a silly String"
+;; => "That's the way you concatenate - I am immutble. I am a silly String - I am immutble. I am a silly String"
 
 ;; clojure.string namespace
 (dir clojure.string)
 
 (clojure.string/includes? "potatoes" "toes")
+;; => true
 
 ;;; Numbers
 
@@ -49,6 +50,7 @@ silly-string
 
 5/4
 (/ 3 4)
+;; => 3/4
 
 (type 3/4)
 ;; => clojure.lang.Ratio
@@ -58,7 +60,7 @@ silly-string
 ;; => 0.75
 
 (* 1.0 2)
-;; => 2.0  -  floating point is contageous.
+;; => 2.0  -  floating point is contagious.
 
 (type (* 1.0 2))
 ;; => java.lang.Double
@@ -81,7 +83,7 @@ Math/PI
 (clojure.string/replace "Hello World" #"\w" "!")
 ;; => "!!!!! !!!!!"
 
-(clojure.string/replace "Hell0 World" #"\d" "o")
+(clojure.string/replace "Hell0 W0rld" #"\d" "o")
 ;; => "Hello World"
 
 ;; passing an anonymous function that takes the matching letter as a parameter:
@@ -121,15 +123,16 @@ Math/PI
 (defn encode-letter
   [s x]
   (let [code (Math/pow (+ x (int (first (char-array s)))) 2)]
-    (str "#" (int code))))
+    (str "*" (int code))))
 
 (defn encode
   [s]
   (let [number-of-words (count (clojure.string/split s #" "))]
-   (clojure.string/replace s #"\w" (fn [s] (encode-letter s number-of-words)))))
+    (clojure.string/replace s #"\w" (fn [s] (encode-letter s number-of-words)))))
 
 (encode "Super secret message")
-;; => "#7396#14400#13225#10816#13689 #13924#10816#10404#13689#10816#14161 #12544#10816#13924#13924#10000#11236#10816"
+;; => "*7396*14400*13225*10816*13689 *13924*10816*10404*13689*10816*14161 *12544*10816*13924*13924*10000*11236*10816"
+
 
 (defn decode-letter
   [x y]
@@ -140,15 +143,17 @@ Math/PI
 
 (defn decode [s]
   (let [number-of-words (count (clojure.string/split s #" "))]
-    (clojure.string/replace s #"\#\d+" (fn [s] (decode-letter s number-of-words)))))
+    (clojure.string/replace s #"\*\d+" (fn [s] (decode-letter s number-of-words)))))
 
-(decode "#7396#14400#13225#10816#13689 #13924#10816#10404#13689#10816#14161 #12544#10816#13924#13924#10000#11236#10816")
+(decode "*7396*14400*13225*10816*13689 *13924*10816*10404*13689*10816*14161 *12544*10816*13924*13924*10000*11236*10816")
 ;; => "Super secret message"
 
-(encode "If you want to keep a secret, you must also hide it from yourself.")
-;; => "#7569#13456 #18225#15625#17161 #17689#12321#15376#16900 #16900#15625 #14641#13225#13225#15876 #12321 #16641#13225#12769#16384#13225#16900, #18225#15625#17161 #15129#17161#16641#16900 #12321#14884#16641#15625 #13924#14161#12996#13225 #14161#16900 #13456#16384#15625#15129 #18225#15625#17161#16384#16641#13225#14884#13456."
 
-(decode *1)
+;;(encode "If you want to keep a secret, you must also hide it from yourself.")
+;; => "*7569*13456 *18225*15625*17161 *17689*12321*15376*16900 *16900*15625 *14641*13225*13225*15876 *12321 *16641*13225*12769*16384*13225*16900, *18225*15625*17161 *15129*17161*16641*16900 *12321*14884*16641*15625 *13924*14161*12996*13225 *14161*16900 *13456*16384*15625*15129 *18225*15625*17161*16384*16641*13225*14884*13456."
+
+
+;;(decode *1)
 ;; => "If you want to keep a secret, you must also hide it from yourself."
 
 
@@ -484,6 +489,116 @@ Hickey"]}}}
 
 ;; sort
 (def alphabet #{:a :b :c :d :e :f})
+
+alphabet
+;; => #{:e :c :b :d :f :a}
+
+(sort alphabet)
+;; => (:a :b :c :d :e :f)
+
+(sort [3 7 5 1 9])
+;; => (1 3 5 7 9)
+
+;; back into a vector
+(into [] (sort [3 7 5 1 9]))
+;; => [1 3 5 7 9]
+
+;; conj a tuple onto a map
+(conj language [:created 2007])
+;; => {:name "Clojure", :creator "Rich Hickey", :platforms ["Java" "JavaScript" ".NET"], :created 2007}
+
+;; vector is an associative collection where the key is the index
+(assoc [:a :b :c :d] 2 :z)
+;; => [:a :b :z :d]  ; replaced
+
+
+;;; Exercise 2.06: Working with Nested Data Structures
+
+;; the database:
+(def gemstone-db
+  { :ruby {:name "Ruby"
+           :stock 120
+           :sales [1990 3644 6376 4918 7882 6747 7495 8573 5097 1712]
+           :properties {:dispersion 0.018
+                        :hardness 9.0
+                        :refractive-index [1.77 1.78]
+                        :color "Red" }}
+   :diamond {:name "Diamond"
+             :stock 10
+             :sales [8295 329 5960 6118 4189 3436 9833 8870 9700 7182 7061 1579]
+             :properties {:dispersion 0.044
+                          :hardness 10
+                          :refractive-index [2.417 2.419]
+                          :color "Typically yellow, brown or gray to colorless" }}
+   :moissanite {:name "Moissanite"
+                :stock 45
+                :sales [7761 3220]
+                :properties {:dispersion 0.104
+                             :hardness 9.5
+                             :refractive-index [2.65 2.69]
+                             :color "Colorless, green, yellow" }}
+   })
+
+;; get the harness of the Ruby
+(get (get (get gemstone-db :ruby) :properties) :hardness)
+;; => 9.0
+
+;; use keywords for elegance.
+(:hardness (:properties (:ruby gemstone-db)))
+;; => 9.0
+
+;; use get-in
+(get-in gemstone-db [:ruby :properties :hardness])
+;; => 9.0
+
+(defn durability
+  [db gemstone]
+  (get-in db [gemstone :properties :hardness]))
+
+(durability gemstone-db :ruby)
+;; => 9.0
+(durability gemstone-db :moissanite)
+;; => 9.5
+
+;; update db
+(assoc (:ruby gemstone-db) :properties {:color "Near colorless through pink through all shades of red to a deep crimson"})
+;; => {:name "Ruby", :stock 120, :sales [1990 3644 6376 4918 7882 6747 7495 8573 5097 1712], :properties {:color "Near colorless through pink through all shades of red to a deep crimson"}}
+
+;; oops blew out other properties
+
+(into {:a 1 :b 2} {:c 3})
+;; => {:a 1, :b 2, :c 3}
+
+;; try update with into to change :color
+(update (:ruby gemstone-db) :properties into {:color  "Near colorless through pink through all shades of red to a deep crimson"})
+;; => {:name "Ruby", :stock 120, :sales [1990 3644 6376 4918 7882 6747 7495 8573 5097 1712], :properties {:dispersion 0.018, :hardness 9.0, :refractive-index [1.77 1.78], :color "Near colorless through pink through all shades of red to a deep crimson"}}
+
+;; use assoc-in
+(assoc-in gemstone-db [:ruby :properties :color]
+          "Near colorless through pink through all shades of red to a deep crimson")
+
+(clojure.pprint/pprint *1)
+
+(defn change-color
+  [db gemstone new-color]
+  (assoc-in db [gemstone :properties :color] new-color))
+
+(change-color gemstone-db :ruby "Some kind of red")
+
+;; change stock and make sale
+
+(update-in gemstone-db [:diamond :stock] dec)
+
+;; now change the sales vector with update-in an conj
+(update-in gemstone-db [:diamond :sales] conj 999)
+
+(defn sell
+  [db gemstone client-id]
+  (let [clients-updated-db (update-in db [gemstone :sales] conj client-id)]
+    (update-in clients-updated-db [gemstone :stock] dec)))
+
+(sell gemstone-db :moissanite 123)
+
 
 
 

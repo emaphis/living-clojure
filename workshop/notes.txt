@@ -11,6 +11,8 @@ C-c M-n M-r refresh classpath
 C-c C-e    evaluate
 C-x C-e    ....
 C-c C-c    evaluate toplevel form.
+C-M-x      ....
+C-c M-;    evaluate to comment
 C-c C-v w  evaluate and replace.
 C-c M-e    evaluate to REPL
 C-c M-p    load form to REPL
