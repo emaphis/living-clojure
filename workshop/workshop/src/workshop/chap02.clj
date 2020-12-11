@@ -600,5 +600,69 @@ alphabet
 (sell gemstone-db :moissanite 123)
 
 
+;;; Activity 2.01: Creating a Simple In-Memory Database
+;;  pg. 75
+
+;; functions to store db in memory
+(def memory-db (atom {}))
+(defn read-db [] @memory-db)
+(defn write-db [new-db] (reset! memory-db new-db))
+
+;; data shape
+{:table-1 {:data [] :indexes {}} :table-2 {:data [] :indexes {}}}
+
+(def example
+  {:clients {:data [{:id 1 :name "Bob" :age 30} {:id 2 :name "Alice" :age 24}]
+             :indexes {:id {1 0, 2 1}}},
+   :fruits {:data [{:name "Lemon" :stock 10} {:name "Coconut" :stock 3}]
+            :indexes {:name {"Lemon" 0, "Coconut" 1}}},
+   :purchases {:data [{:id 1 :user-id 1 :item "Coconut"} {:id 1 :user-id 2 :item "Lemon"}]
+               :indexes {:id {1 0, 2 1}}}
+   })
 
 
+(defn refresh [] (write-db example))
+
+(defn create-table
+  [name]
+  (let [db (read-db)]
+    (write-db (assoc db name  {:data [] :indexes {}}))))
+
+;; (refresh)
+;; (create-table :nuts)
+;; (read-db)
+;; {:clients {:data [{:id 1, :name "Bob", :age 30} {:id 2, :name "Alice", :age 24}], :indexes {:id {1 0, 2 1}}},
+;;  :fruits {:data [{:name "Lemon", :stock 10} {:name "Coconut", :stock 3}], :indexes {:name {"Lemon" 0, "Coconut" 1}}},
+;;  :purchases {:data [{:id 1, :user-id 1, :item "Coconut"} {:id 1, :user-id 2, :item "Lemon"}], :indexes {:id {1 0, 2 1}}},
+;;  :nuts {:data [], :indexes {}}}
+
+(defn drop-table
+  [name]
+  (let [db (read-db)]
+    (write-db (dissoc db name))))
+
+;;(drop-table :nuts)a
+;;(read-db)
+
+(defn insert
+  [table record id-key]
+  (let [db (read-db)
+        new-db (update-in db [table :data] conj record)
+        new-idx (- (count (get-in new-db [table :data])) 1)]
+    (write-db (update-in new-db [table :indexes id-key] assoc (id-key record) new-idx))))
+
+
+(defn select-*
+  [name]
+  (get-in (read-db) [name :data]))
+
+
+(defn select-*-where
+  [name field field-value]
+  (let [db (read-db)
+        index (get-in db [name :indexes field field-value])
+        data (get-in db [name :data])]
+    (get data index)))
+
+
+;; NOTE:  more research of update-in, get-in ...
