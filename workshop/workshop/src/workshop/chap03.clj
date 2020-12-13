@@ -9,7 +9,9 @@
         lon (last coords)]
     (println (str "Latitude: " lat " - " "Longitude: " lon))))
 
+(print-coords [48.9615 2.4372])
 
+;; destructuring
 (defn print-coords [coords]
   (let [[lat lon] coords]
     (println (str "Latitude: " lat " - " "Longitude: " lon))))
@@ -30,13 +32,17 @@
         name (:name airport)]
     (println (str name " is located at Latitude: " lat " - " "Longitude: " lon))))
 
+(print-coords paris)
+
 ;; associative destructuring
 
 (defn print-coords [airport]
   (let [{lat :lat lon :lon airport-name :name} airport]
     (println (str airport-name " is located at Latitude: " lat " - " "Longitude: " lon))))
 
-;; when the keys and symbols have the same name
+(print-coords paris)
+
+;; when the keys and symbols have the same name - `:keys`
 
 (defn print-coords [airport]
   (let [{:keys [lat lon name]} airport]
@@ -56,7 +62,7 @@
 ;; a booking is some information followed by one or more flights
 ;; internal ID
 ;; name of the passenger.
-;; some random data.
+;; some sensitive data.
 [1425,
  "Bob Smith",
  "Allergic to unsalted peanuts only",
@@ -83,11 +89,11 @@
       [id customer-name sensitive-info flight1 flight2 flight3] big-booking]
   (println id customer-name flight1 flight2 flight3))
 
-;; ignore id and sensitive data
+;; ignore id and sensitive data - `_` symbol
 (let [[_ customer-name _ flight1 flight2 flight3] booking]
   (println customer-name flight1 flight2 flight3))
 
-;; repeating flights
+;; repeating flights  - `&` symbol
 (let [[_ customer-name _ & flights] booking]
   (println customer-name " booked " (count flights) " flights"))
 
@@ -96,13 +102,14 @@
   (let [[[lat1 lon1] [lat2 lon2]] flight]
     (println (str "Flying from: Lat " lat1 " Lon " lon1 " Flying to: Lat " lat2 " Lon " lon2))))
 
+(print-flight [[48.9615, 2.4372], [37.742 -25.6976]])
+
 ;; simplify
 (defn print-flight [flight]
   (let [[departure arrival] flight
         [lat1 lon1] departure
         [lat2 lon2] arrival]
     (println (str "Flying from: Lat " lat1 " Lon " lon1 " Flying to: Lat " lat2 " Lon " lon2))))
-
 
 (print-flight [[48.9615, 2.4372], [37.742 -25.6976]])
 
@@ -141,7 +148,9 @@
         {lat2 :lat lon2 :lon} to]
     (println (str "Flying from: Lat " lat1 " Lon " lon1 " Flying to: Lat " lat2 " Lon " lon2))))
 
-;; nest associative destructuring expressions
+(print-mapjet-flight (first (:flights mapjet-booking)))
+
+;; nested associative destructuring expressions
 
 (defn print-mapjet-flight [flight]
   (let [{{lat1 :lat lon1 :lon} :from,
@@ -171,6 +180,7 @@
 
 (print-flight [[48.9615, 2.4372], [37.742 -25.6976]])
 
+;; nested associative destructuring
 (defn print-mapjet-flight
   [{{lat1 :lat lon1 :lon} :from, {lat2 :lat lon2 :lon} :to}]
   (println (str "Flying from: Lat " lat1 " Lon " lon1 " Flying to: Lat " lat2 " Lon " lon2)))
@@ -183,6 +193,8 @@
 (defn no-overloading []
   (println "Same old, same old ..."))
 
+(no-overloading)
+
 (defn overloading
   ([] "No argument")
   ([a] (str "One argument: " a))
@@ -192,5 +204,60 @@
 (overloading 1)
 (overloading 1 2)
 (overloading 1 nil)
+
+
+;; game
+(def weapon-damage {:fists 10 :staff 35 :sword 100 :cast-iron-saucepan 150})
+
+(defn strike
+  ([enemy] (strike enemy :fists))
+  ([enemy weapon]
+   (let [damage (weapon weapon-damage)]
+     (update enemy :health - damage))))
+
+(strike {:name "n00b-hunter" :health 100})
+;; => {:name "n00b-hunter", :health 90}
+
+(strike {:name "n00b-hunter" :health 100} :sword)
+;; => {:name "n00b-hunter", :health 0}
+
+(strike {:name "n00b-hunter" :health 100} :cast-iron-saucepan)
+;; => {:name "n00b-hunter", :health -50}
+
+
+;;; Variadic Functions
+
+;; takes multiple parameters but isn't overloaded
+(str "Concatenating " "is " "difficult " "to " "spell " "but " "easy " "to " "use!")
+;; => "Concatenating is difficult to spell but easy to use!"
+
+
+(defn welcome
+  [player & friends]
+  (println (str "Welcome to the Parenthmazes " player "!"))
+  (when (seq friends)
+    (println (str "Sending " (count friends) " friend request(s) to the following players: " (clojure.string/join ", " friends)))))
+
+(welcome "Jon")
+(welcome "Jon" "Arya" "Tyrion" "Petyr")
+
+;; improved
+(defn welcome
+  ([player] (println (str "Welcome to Parenthmazes (single-player mode), " player "!")))
+  ([player & friends]
+   (println (str "Welcome Parenthmazes (multi-player mode), " player "!"))
+   (println (str "Sending " (count friends) " friend request(s) to the following players: " (clojure.string/join ", " friends)))))
+
+(welcome "Jon")
+(welcome "Jon" "Arya" "Tyrion" "Petyr")
+
+
+;;; Exercise 3.03: Multi-arity and Destructuring with Parenthmazes
+
+
+
+
+
+
 
 
