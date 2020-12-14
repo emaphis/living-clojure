@@ -254,10 +254,77 @@
 
 ;;; Exercise 3.03: Multi-arity and Destructuring with Parenthmazes
 
+(def weapon-damage {:fists 10.0 :staff 35.0 :sword 100.0 :cast-iron-saucepan 150.0})
 
+(defn strike
+  ([target weapon]
+   (let [points (weapon weapon-damage)]
+     (if (= :gnomes (:camp target))
+       (update target :health + points)
+       (update target :health - points)))))
 
+(def enemy {:name "Zulkaz", :health 250, :camp :trolls})
 
+(strike enemy :sword)
+;; => {:name "Zulkaz", :health 150.0, :camp :trolls}
 
+(def ally {:name "Carla", :health 80, :camp :gnomes})
 
+(strike ally :staff)
+;; => {:name "Carla", :health 45.0, :camp :gnomes}
 
+(defn strike
+  ([target weapon]
+   (let [points (weapon weapon-damage)]
+     (if (= :gnomes (:camp target))
+       (update target :health + points)
+       (let [armor (or (:armor target) 0)
+             damage (* points (- 1 armor))]
+         (update target :health - damage))))))
+
+;; without armor
+(strike enemy :cast-iron-saucepan)
+;; => {:name "Zulkaz", :health 100.0, :camp :trolls}
+
+;; with armor
+(def enemy2 {:name "Zulkaz", :health 250, :armor 0.8, :camp :trolls})
+
+(strike enemy2 :cast-iron-saucepan)
+;; => {:name "Zulkaz", :health 220.0, :armor 0.8, :camp :trolls}
+
+;; associative destructuring of parameters
+(defn strike
+  ([{:keys [camp armor] :as target} weapon]
+   (let [points (weapon weapon-damage)]
+     (if (= :gommes camp)
+       (update target :health + points)
+       (let [damage (* points (- 1 (or armor 0)))]
+         (update target :health - damage))))))
+
+(strike enemy2 :cast-iron-saucepan)
+;; => {:name "Zulkaz", :health 220.0, :armor 0.8, :camp :trolls}
+
+;; `:or` provides a default value for `:armor`
+(defn strike
+  "With one argument, strike a target with a default :fists `weapon`.
+  With two argument, strike a target with `weapon`"
+  ([target] (strike target :fists))
+  ([{:keys [camp armor], :or {armor 0}, :as target} weapon]
+   (let [points (weapon weapon-damage)]
+     (if (= :gnomes camp)
+       (update target :health + points)
+       (let [damage (* points (- 1 armor))]
+         (update target :health - damage))))))
+
+(strike enemy2)
+;; => {:name "Zulkaz", :health 248.0, :armor 0.8, :camp :trolls}
+
+(strike enemy2 :cast-iron-saucepan)
+;; => {:name "Zulkaz", :health 220.0, :armor 0.8, :camp :trolls}
+
+(strike ally :staff)
+;; => {:name "Carla", :health 115.0, :camp :gnomes}
+
+(strike enemy)
+;; => {:name "Zulkaz", :health 240.0, :camp :trolls}
 
