@@ -433,3 +433,66 @@
 (#(str %1 " " %2 " " %3) "First" "Second" "Third")
 ;; => "First Second Third"
 
+
+;;; Exercise 3.04: High-Order Functions with Parenthmazes
+
+(def weapon-fn-map
+  {:fists (fn [health] (if (< health 100) (- health 10) health))
+   :staff (partial + 35)
+   :sword #(- % 100)
+   :cast-iron-saucepan #(- % 100 (rand-int 50))
+   :sweet-potato identity})
+
+((weapon-fn-map :fists) 150)
+;; => 150
+((weapon-fn-map :fists) 50)
+;; => 40
+((weapon-fn-map :staff) 150)
+;; => 185
+((weapon-fn-map :sword) 150)
+;; => 50
+((weapon-fn-map :cast-iron-saucepan) 200)
+;; => 78
+((weapon-fn-map :cast-iron-saucepan) 200)
+;; => 60
+((weapon-fn-map :sweet-potato) 150)
+;; => 150
+
+;; `strike` using the new `weapon-fn-map`
+(defn strike
+  "With one argument, strike a target with a default `:fists` `weapon`. With
+  two arguments, strike a target with `weapon` an return the target entity"
+  ([target] (strike target :fists))
+  ([target weapon]
+   (let [weapon-fn (weapon weapon-fn-map)]
+     (update target :health weapon-fn))))
+
+(def enemy {:name "Arnold", :health 250})
+
+(strike enemy :sweet-potato)
+;; => {:name "Arnold", :health 250}
+(strike enemy :sword)
+;; => {:name "Arnold", :health 150}
+(strike enemy :cast-iron-saucepan)
+;; => {:name "Arnold", :health 134}
+
+;; more than one weapon
+(strike (strike enemy :sword) :cast-iron-saucepan)
+;; => {:name "Arnold", :health 5}
+
+;; `update` using `comp`
+(update enemy :health (comp (:sword weapon-fn-map) (:cast-iron-saucepan weapon-fn-map)))
+;; => {:name "Arnold", :health 3}
+;; => {:name "Arnold", :health 31}
+
+;; use `comp` derive a function that uses all weapons
+(defn mighty-strike
+  "Strike a `target` with all weapons!"
+  [target]
+  (let [weapon-fn (apply comp (vals weapon-fn-map))]
+    (update target :health weapon-fn)))
+
+(mighty-strike enemy)
+;; => {:name "Arnold", :health 32}
+;; => {:name "Arnold", :health 29}
+
