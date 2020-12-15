@@ -328,3 +328,108 @@
 (strike enemy)
 ;; => {:name "Zulkaz", :health 240.0, :camp :trolls}
 
+
+;;; Higher-Order Programming
+
+;;; First-Class Functions
+
+;; functions as parameters
+(update {:itme "Tomato" :price 1.0} :price (fn [x] (/ x 2)))
+;; => {:itme "Tomato", :price 0.5}
+
+;; pass a function and a parameter
+(update {:time "Tomato" :price 1.0} :price / 2)
+;; => {:time "Tomato", :price 0.5}
+
+(update {:item "Tomato" :fruit false} :fruit not)
+;; => {:item "Tomato", :fruit true}
+
+;; our own function
+(defn operate [f x] (f x))
+
+(operate inc 2)
+;; => 3
+
+(operate clojure.string/upper-case "hello.")
+;; => "HELLO."
+
+;; any number of arguments
+(defn operate [f & args] (apply f args))
+;;(operate + [1 2 3])
+
+(apply + [1 2 3])
+;; => 6
+
+(operate str "It " "Should " "Concatenate!")
+;; => "It Should Concatenate!"
+
+;; return a function
+(defn random-fn [] (first (shuffle [+ - * /])))
+
+((random-fn) 2 3)
+;; => 2/3
+;; => 5
+
+(fn? random-fn)
+;; => true
+
+(fn? (random-fn))
+;; => true
+
+(let [mysterious-fn (random-fn)]
+  (mysterious-fn 2 3))
+;; => -1
+;; => 5
+;; => 2/3
+
+;;; Partial Functions -  `partial`
+
+(def marketing-adder (partial + 0.99))
+
+(marketing-adder 10 5)
+;; => 15.99
+
+(def format-price (partial str "$"))
+
+(format-price "100")
+;; => "$100"
+(format-price 10 50)
+;; => "$1050"
+
+;;; Composing Functions - `comp`
+(defn sample [coll] (first (shuffle coll)))
+
+(sample [1 2 3 4])
+;; => 2
+
+;; more elegant
+(def sample (comp first shuffle))
+
+(sample [1 2 3 4])
+;; => 1
+
+((comp inc *) 2 2)
+;; => 5
+
+;; ((comp * inc) 2 2)  ; wrong order
+
+;; combine `partial` and `comp`
+(def checkout
+  (comp (partial str "Only ") format-price marketing-adder))
+
+(checkout 10 5 15 6 9)
+;; => "Only $45.99"
+
+;; `#()` reader macro
+
+(fn [s] (str "Hello" s))
+;; or
+#(str "Hello" %)
+
+(fn [x y] (* (+ x 10) (+ y 20)))
+;; or
+#(* (+ %1 10) (+ %2 20))
+
+(#(str %1 " " %2 " " %3) "First" "Second" "Third")
+;; => "First Second Third"
+
