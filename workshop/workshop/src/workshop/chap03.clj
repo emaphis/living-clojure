@@ -496,3 +496,89 @@
 ;; => {:name "Arnold", :health 32}
 ;; => {:name "Arnold", :health 29}
 
+
+;;; Multimethods - runtime polymorphism.
+
+(defmulti strike (fn [m] (get m :weapon)))
+;; equivalent
+(ns-unmap 'workshop.chap03 'strike)
+(defmulti strike :weapon)
+
+(defmethod strike :sword
+  [{{:keys [:health]} :target}]
+  (- health 100))
+
+(defmethod strike :default [{{:keys [:health]} :target}] health)
+
+(strike {:weapon :cast-iron-saucepan :target {:health 200}})
+;; => 200
+
+(ns-unmap 'workshop.chap03 'strike)
+
+(defmulti strike
+  (fn [{{:keys [:health]} :target weapon :weapon}]
+    (if (< health 50) :finisher weapon)))
+
+(defmethod strike :finisher [_] 0)
+
+(defmethod strike :sword
+  [{{:keys [:health]} :target}]
+  (- health 100))
+
+(defmethod strike :default [{{:keys [:health]} :target}] health)
+
+(strike {:weapon :sword :target {:health 200}})
+;; => 100
+
+(strike {:weapon :spoon :target {:health 30}});
+;; => 0
+
+
+;;; Exercise 3.05: Using Multimethods
+;;  Parenthmazes 4.0
+
+;; Player entity
+(def player
+  {:name "Lea" :health 200 :position {:x 10 :y 10 :facing :north}})
+
+(defmulti move #(:facing (:position %)))
+
+(ns-unmap 'workshop.chap03 'move)
+
+(defmulti move (comp :facing :position))
+
+(defmethod move :north
+  [entity]
+  (update-in entity [:position :y] inc))
+
+;;player
+;; => {:name "Lea", :health 200, :position {:x 10, :y 10, :facing :north}}
+
+(move player)
+;; => {:name "Lea", :health 200, :position {:x 10, :y 11, :facing :north}}
+
+(defmethod move :south
+  [entity]
+  (update-in entity [:position :y] dec))
+
+(defmethod move :west
+  [entity]
+  (update-in entity [:position :x] inc))
+
+(defmethod move :east
+  [entity]
+  (update-in entity [:position :x] dec))
+
+(move {:position {:x 10 :y 10 :facing :west}})
+;; => {:position {:x 11, :y 10, :facing :west}}
+(move {:position {:x 10 :y 10 :facing :south}})
+;; => {:position {:x 10, :y 9, :facing :south}}
+(move {:position {:x 10 :y 10 :facing :east}})
+;; => {:position {:x 9, :y 10, :facing :east}}
+
+;; default move method
+(defmethod move :default [entity] entity)
+
+(move {:position {:x 10 :y 10 :facing :wall}})
+;; => {:position {:x 10, :y 10, :facing :wall}}
+
