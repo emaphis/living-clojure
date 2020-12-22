@@ -1,4 +1,8 @@
-(ns workshop.chap04)
+(ns workshop.chap04
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io :as io]
+            [semantic-csv.core :as sc]))
+
 (use 'clojure.repl)
 
 ;;; Mapping and Filtering
@@ -411,6 +415,111 @@ by-ten
 
 
 ;;; Exercise 4.08: Identifying Weather Trends
+
+;; 1. weather data
+(def temperature-by-day
+  [18 23 24 23 27 24 22 21 21 20 32 33 30 29 35 28 25 24 28 29 30])
+
+;; 2. expression with windowing offsets
+(map (fn [today yesterday]
+       (cond (> today yesterday) :warmer
+             (< today yesterday) :colder
+             (= today yesterday) :unchanged))
+     (rest temperature-by-day)  ; look backward
+     temperature-by-day)
+;; => (:warmer :warmer :colder :warmer :colder :colder :colder :unchanged :colder :warmer :warmer :colder :colder :warmer :colder :colder :colder :warmer :warmer :warmer)
+
+;;; Consuming Extracted Data with `apply`
+;;   producing a summary with `min` `max` or `+` with `apply`
+
+(apply max [3 9 6])
+;; => 9
+(max 3 9 6)
+;; => 9
+(apply + [3 9 6])
+;; => 18
+
+#_(let [a 5
+        b nil
+        c 18]
+    (+ a b c))
+
+;; filter and apply
+(let [a 5
+      b nil
+      c 18]
+  (apply + (filter integer? [a b c])))
+;; => 23
+
+;; fails - min always needs arguemnts
+#_(apply min [])
+
+(apply min 0 [])
+;; => 0
+
+
+;;; Exercise 4.09: Finding the Average Weather Temperature
+
+;; 1. use already defined temperature-by-day
+temperature-by-day
+;; => [18 23 24 23 27 24 22 21 21 20 32 33 30 29 35 28 25 24 28 29 30]
+
+;; 2. use (apply + _) to calculate average temperature
+(let [total (apply + temperature-by-day)
+      c (count temperature-by-day)]
+  (/ total c))
+;; => 26
+
+
+;;; Activity 4.01: Using map and filter to Report Summary Information
+
+
+(defn max-value-by-status [field status users]
+  (->> users
+       (filter (fn [st] (= (:status st) status)))
+       (map field)
+       (apply max 0)))
+
+(defn min-value-by-status [field status users]
+  (->> users
+       (filter (fn [st] (= (:status st) status)))
+       (map field)
+       (apply min 0)))
+
+game-users
+
+(max-value-by-status :current-points :active game-users)
+;; => 725
+(min-value-by-status :current-points :active game-users)
+;; => 21\
+(max-value-by-status :experience-level :imprisoned game-users)
+;; => 5
+(min-value-by-status :experience-level :imprisoned game-users)
+;; => 0
+
+
+;;; Importing a Dataset from a CSV file.
+
+;;; Exercise 4.10: Importing Data from a CSV File
+
+(with-open [r (io/reader "c:/test/tennis-data/match_scores_1991-2016_unindexed_csv.csv")]
+  (count (csv/read-csv r)))
+;; => 95360
+
+;; Real-World Laziness
+
+;;; Exercise 4.11: Avoiding Lazy Evaluation Traps with Files
+
+(with-open [r (io/reader "c:/test/tennis-data/match_scores_1991-2016_unindexed_csv.csv")]
+  (->> (csv/read-csv r)
+       (map #(nth % 7))
+       (take 6)
+       (doall)))  ; force lazy evaluation
+;; => ("winner_name" "Nicklas Kulti" "Michael Stich" "Nicklas Kulti" "Jim Courier" "Michael Stich")
+
+
+;;; Convenient CSV Parsing  - see tennis.clj
+
 
 
 
