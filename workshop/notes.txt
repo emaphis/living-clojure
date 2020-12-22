@@ -18,7 +18,7 @@ C-c M-e    evaluate to REPL
 C-c M-p    load form to REPL
 C-c C-z    jump to REPL
 C-c C-v n  evaluate the ns form
-C-c M-n M-n switch REPL to namepace
+C-c M-n M-n switch REPL to namespace
 
 M-.          Look up definition
 C-c C-d C-d  Look up documentation

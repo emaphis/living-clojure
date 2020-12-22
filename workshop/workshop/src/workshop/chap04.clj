@@ -519,9 +519,4 @@ game-users
 
 
 ;;; Convenient CSV Parsing  - see tennis.clj
-
-
-
-
-
-
+;;; Activity 4.02: Arbitrary Tennis Rivalries - see tenni.clj
