@@ -149,3 +149,5 @@
 
 ;;; Exercise 5.02: Measuring Elevation Differences on Slopes
 ;; see bike_race.clj
+
+;;; Exercise 5.03: Winning and Losing Streaks
