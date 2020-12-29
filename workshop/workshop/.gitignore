@@ -13,3 +13,6 @@ pom.xml.asc
 .hg/
 .calva/
 .vscode/
+.clj-kondo/cache/
+.clj-kondo/.cache/
+.lsp/sqlite.*.db

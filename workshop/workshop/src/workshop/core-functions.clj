@@ -160,13 +160,23 @@
 
 ;;; Exercises.
 
-;; map in terms of reduce
+;; map, filter in terms of reduce
 
 (defn my-map
-  [f xs]
-  (reduce #(cons (f %2) %1) (seq '()) xs))
+  [f coll]
+  (reverse (reduce #(cons (f %2) %1) (seq '()) coll)))
 
+(defn my-map
+  [f coll]
+  (reverse (reduce #(conj %1 (f %2)) (seq '()) coll)))
 
 (my-map inc [1 2 3])
+
+(defn my-filter
+  [p coll]
+  (reverse (reduce #(when (p %2) (cons %2 %1)) (seq '()) coll)))
+
+(my-filter #(> % 3) [0 1 2 3 4 5 6])
+;; => (4 5 6)
 
 ;;; Lazy Seqs

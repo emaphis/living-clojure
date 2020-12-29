@@ -39,3 +39,30 @@ C-c C-t p   run all tests for project
 C-c C-t r   rerun failed failed tests
 
 C-c C-q     quit
+C-c f       slurp forward
+
+Calva notes
+C-w         Grow region
+M-C-c       Load current file
+C-Enter     Evaluate current form
+M-Enter     Evaluate toplevel form
+C-M-c c     Evaluate form to a comment
+C-M-c space Evaluate toplevel form to a comment
+C-M-r       Evaluate and replace
+Escape      Dismiss display results
+
+C-M-c C-M-V Paste form to REPL window
+C-M-c C-M-space Paste current toplevel form to REPL window
+
+C-M-c M-n   Switch namespace of REPL to current file
+
+C-M-c p     Toggle pretty printing
+
+C-M-c t     Run namespace tests
+C-M-c Shift-t Run all tests
+C-M-c C-M-t Run current test
+C-M-C C-t   Run failing tests
+
+C-M-c s     Select current form.
+
+
