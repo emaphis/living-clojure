@@ -151,3 +151,103 @@
 ;; see bike_race.clj
 
 ;;; Exercise 5.03: Winning and Losing Streaks
+
+
+;;; Reducing without reduce
+
+;; `zipmap` - build a map from two sequences
+(zipmap [:a :b :c] [0 1 2])
+;; => {:a 0, :b 1, :c 2}
+
+;;; Exercise 5.04: Creating a Lookup Table with `zipmap`
+
+(def matches  
+  [{:winner-name "Kvitova P.",
+    :loser-name "Ostapenko J.",
+    :tournament "US Open",
+    :location "New York",
+    :date "2016-08-29"}
+   {:winner-name "Kvitova P.",
+    :loser-name "Buyukakcay C.",
+    :tournament "US Open",
+    :location "New York",
+    :date "2016-08-31"}
+   {:winner-name "Kvitova P.",
+    :loser-name "Svitolina E.",
+    :tournament "US Open",
+    :location "New York",
+    :date "2016-09-02"}
+   {:winner-name "Kerber A.",
+    :loser-name "Kvitova P.",
+    :tournament "US Open",
+    :location "New York",
+    :date "2016-09-05"}
+   {:winner-name "Kvitova P.",
+    :loser-name "Brengle M.",
+    :tournament "Toray Pan Pacific Open",
+    :location "Tokyo",
+    :date "2016-09-20"}
+   {:winner-name "Puig M.",
+    :loser-name "Kvitova P.",
+    :tournament "Toray Pan Pacific Open",
+    :location "Tokyo",
+    :date "2016-09-21"}])
+
+;; create a sequence of dates
+(map :date matches)
+
+;; create a map keyed on data
+(def matches-by-date (zipmap (map :date matches) matches))
+
+;; get match by date
+(get matches-by-date "2016-09-20")
+;; => {:winner-name "Kvitova P.", :loser-name "Brengle M.", :tournament "Toray Pan Pacific Open", :location "Tokyo", :date "2016-09-20"}
+
+
+;;; Maps to Sequences, and Back Again
+;; `into` - `seq`
+(into {} [[:a 1] [:b 2]])
+;; => {:a 1, :b 2}
+(seq {:a 1, :b 2})
+;; => ([:a 1] [:b 2])
+
+(def letters-and-numbers {:a 5 :b 18 :c 35})
+
+(reduce (fn [acc k]
+          (assoc acc k (* 10 (get letters-and-numbers k))))
+        {}
+        (keys letters-and-numbers))
+;; => {:a 50, :b 180, :c 350}
+
+;; more simple
+(into {} (map (fn [[k v]] [k (* v 10)]) letters-and-numbers))
+;; => {:a 50, :b 180, :c 350}
+
+;;; `group-by`
+
+(def dishes
+  [{:name "Carrot Cake"
+    :course :dessert}
+   {:name "French Fries"
+    :course :main}
+   {:name "Celery"
+    :course :appetizer}
+   {:name "Salmon"
+    :course :main}
+   {:name "Rice"
+    :course :main}
+   {:name "Ice Cream"
+    :course :dessert}])
+
+(group-by :course dishes)
+;; {:dessert [{:name "Carrot Cake", :course :dessert} {:name "Ice Cream", :course :dessert}],
+;;  :main [{:name "French Fries", :course :main} {:name "Salmon", :course :main} {:name "Rice", :course :main}],
+;;  :appetizer [{:name "Celery", :course :appetizer}]}
+
+(defn our-group-by [fun xs]
+  (reduce (fn [acc x]
+            (update acc (fun x) (fn [sublist] (conj (or sublist []) x))))
+          {}
+          xs))
+
+

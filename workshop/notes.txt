@@ -4,6 +4,7 @@ Cider notes
 
 Emacs:
 C-c C-x C-j C-j jack in
+C-c M-j ...
 
 C-c C-k    evaluate buffer
 C-c C-l    load file
