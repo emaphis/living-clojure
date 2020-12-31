@@ -180,3 +180,62 @@
 ;; => (4 5 6)
 
 ;;; Lazy Seqs
+
+;; Efficiency
+
+(def vampire-database
+  {0 {:makes-blood-puns? false, :has-pulse? true  :name "McFishwich"}
+   1 {:makes-blood-puns? false, :has-pulse? true  :name "McMackson"}
+   2 {:makes-blood-puns? true,  :has-pulse? false :name "Damon Salvatore"}
+   3 {:makes-blood-puns? true,  :has-pulse? true  :name "Mickey Mouse"}})
+
+(defn vampire-related-details
+  [social-security-number]
+  (Thread/sleep 1000)
+  (get vampire-database social-security-number))
+
+(defn vampire?
+  [record]
+  (and (:makes-blood-puns? record)
+       (not (:has-pulse? record))
+       record))
+
+(defn identify-vampire
+  [social-security-numbers]
+  (first (filter vampire?
+                 (map vampire-related-details social-security-numbers))))
+
+(time (vampire-related-details 0))
+;; "Elapsed time: 1001.1243 msecs"
+;; => {:makes-blood-puns? false, :has-pulse? true, :name "McFishwich"}
+
+(time (def mapped-details (map vampire-related-details (range 0 1000000))))
+;; "Elapsed time: 0.1214 msecs"
+;; => #'workshop.core-functions/mapped-details
+
+(time (first mapped-details))
+;; "Elapsed time: 32154.1104 msecs"
+;; => {:makes-blood-puns? false, :has-pulse? true, :name "McFishwich"}
+
+(time (first mapped-details))
+;; "Elapsed time: 0.1016 msecs"
+;; => {:makes-blood-puns? false, :has-pulse? true, :name "McFishwich"}
+
+(time (identify-vampire (range 0 1000000)))
+;; "Elapsed time: 32154.3519 msecs"
+;; => {:makes-blood-puns? true, :has-pulse? false, :name "Damon Salvatore"}
+
+;;; Infinite Sequences
+(concat (take 8 (repeat "na")) ["Batman!"])
+;; => ("na" "na" "na" "na" "na" "na" "na" "na" "Batman!")
+
+(take 3 (repeatedly (fn [] (rand-int 10))))
+;; => (9 6 3)
+
+;; construct our own
+(defn even-numbers
+  ([] (even-numbers 0))
+  ([n] (cons n (lazy-seq (even-numbers (+ n 2))))))
+
+(take 10 (even-numbers))
+;; => (0 2 4 6 8 10 12 14 16 18)
