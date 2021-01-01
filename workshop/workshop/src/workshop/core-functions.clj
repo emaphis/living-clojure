@@ -239,3 +239,157 @@
 
 (take 10 (even-numbers))
 ;; => (0 2 4 6 8 10 12 14 16 18)
+
+
+;;; The Collection Abstraction
+;;  `count` `empty?` `every?`
+
+(empty? [])
+;; => true
+
+(empty? ["no!"])
+;; => false
+
+;; `into` and `conj`
+
+(map identity {:sunlight-reaction "Glitter!"})
+;; => ([:sunlight-reaction "Glitter!"])  ; sequence of pairs
+
+(into {} (map identity {:sunlight-reaction "Glitter!"}))  ; back to map
+;; => {:sunlight-reaction "Glitter!"}
+
+(map identity [:garlic :sesame-oil :fried-eggs])
+;; => (:garlic :sesame-oil :fried-eggs)
+
+(into [] (map identity [:garlic :sesame-oil :fried-eggs]))
+;; => [:garlic :sesame-oil :fried-eggs]
+
+(into {:favorite-emotion "gloomy"} [[:sunlight-reaction "Glitter!"]])
+;; => {:favorite-emotion "gloomy", :sunlight-reaction "Glitter!"}
+
+(into ["cherry"] '("pine" "spruce"))
+;; => ["cherry" "pine" "spruce"]
+
+(into {:favorite-animal "kitty"} {:least-favorite-smell "dog"
+                                  :relationship-with-teenager "creepy"})
+;; {:favorite-animal "kitty",
+;;  :least-favorite-smell "dog",
+;;  :relationship-with-teenager "creepy"}
+
+
+;; `conj`
+
+(conj [0] [1])
+;; => [0 [1]]
+;; compare
+(into [0] [1])
+;; => [0 1]
+
+(conj [0] 1)
+;; => [0 1]
+
+(conj [0] 1 2 3 4)
+;; => [0 1 2 3 4]
+
+(conj {:time "midnight"} [:place "ye olde cemetarium"])
+;; => {:time "midnight", :place "ye olde cemetarium"}
+
+;; `conj` in terms of `into`
+(defn my-conj
+  [target & additions]
+  (into target additions))
+
+(my-conj [0] 1 2 3)
+;; => [0 1 2 3]
+
+
+;;; Function Functions
+;;  `apply` `partial`
+
+(max 0 1 2)
+;; => 2
+
+(max [0 1 2])
+;; => [0 1 2]
+
+(apply max [0 1 2])
+;; => 2
+
+;; define `into` in terms `conj` `apply`
+(defn my-into
+  [target additions]
+  (apply conj target additions))
+
+(my-into [0] [1 2 3])
+;; => [0 1 2 3]
+
+;; `partial`
+
+(def add10 (partial + 10))
+
+(add10 3)
+;; => 13
+(add10 5)
+;; => 15
+
+(def add-missing-elements
+  (partial conj ["water" "earth" "air"]))
+
+(add-missing-elements "unobtainium" "adamantium")
+;; => ["water" "earth" "air" "unobtainium" "adamantium"]
+
+;; definition of `partial`
+(defn my-partial
+  [partialized-fn & args]
+  (fn [& more-args]
+    (apply partialized-fn (into args more-args))))
+
+(def add20 (my-partial + 20))
+(add20 3)
+;; => 23
+
+;; add20 ->
+(fn [& more-args]
+  (apply + (into [20] more-args)))
+
+((fn [& more-args]
+   (apply + (into [20] more-args))) 3)
+;; => 23
+
+
+(defn lousy-logger
+  [log-level message]
+  (condp = log-level
+    :warn (clojure.string/lower-case message)
+    :emergency (clojure.string/upper-case message)))
+
+(def warn (partial lousy-logger :warn))
+
+(warn "Red light ahead")
+;; => "red light ahead"
+
+;; `complement`
+
+(defn identify-humans
+  [social-security-numbers]
+  (filter #(not (vampire? %))
+          (map vampire-related-details social-security-numbers)))
+
+(def not-vampire? (complement vampire?))
+(defn identify-humans
+  [social-security-numbers]
+  (filter not-vampire?
+          (map vampire-related-details social-security-numbers)))
+
+;; implement `complement`
+(defn my-complement
+  [fun]
+  (fn [& args]
+    (not (apply fun args))))
+
+(def my-pos? (complement neg?))
+
+(my-pos? 1)
+;; => true
+(my-pos? -1)
+;; => false
