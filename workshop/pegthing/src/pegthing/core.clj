@@ -151,11 +151,73 @@
 
 
 ;;; 2. Returning a board with the result of the player’s move
-
 ;;; Moving Pegs.
-;;; 3. Representing a board textually
-;;; 4.  Handling user interaction
 
+(defn pegged?
+  "Does the position have peg in it?"
+  [board pos]
+  (get-in board [pos :pegged]))
+
+(defn remove-peg
+  "Take the peg at given position out of the board"
+  [board pos]
+  (assoc-in board [pos :pegged] false))
+
+(defn place-peg
+  "Put a peg at given position out of the board"
+  [board pos]
+  (assoc-in board [pos :pegged] true))
+
+(defn move-peg
+  "Take a peg out of p1 and place it in p2"
+  [board p1 p2]
+  (place-peg (remove-peg board p1) p2))
+
+(defn valid-moves
+  "Return a map of all valid move for pos, where the key is the
+  destination and the values is the jumped position"
+  [board pos]
+  (into {}
+        (filter (fn [[destination jumped]]
+                  (and (not (pegged? board destination))
+                       (pegged? board jumped)))
+                (get-in board [pos :connections]))))
+
+(def my-board (assoc-in (new-board 5) [4 :pegged] false))
+;; (valid-moves my-board 1) ; => {4 2}
+;; (valid-moves my-board 6) ; => {4 5}
+;; (valid-moves my-board 11) ; => {4 7}
+;; (valid-moves my-board 5) ; => {}
+;; (valid-moves my-board 8) ; => {}
+
+
+(defn valid-move?
+  "Return jumped position if the move form p1 to p2 is valid, nil
+  otherwise"
+  [board p1 p2]
+  (get (valid-moves board p1) p2))
+
+;; (valid-move? my-board 8 4) ; => nil
+;; (valid-move? my-board 1 4) ; => 2
+
+
+(defn make-move
+  "Move peg from p1 to p2, removing jumped peg"
+  [board p1 p2]
+  (if-let [jumped (valid-move? board p1 p2)]
+    (move-peg (remove-peg board jumped) p1 p2)))
+
+
+(defn can-move?
+  "Do any of the pegged positions have valid moves?"
+  [board]
+  (some (comp not-empty (partial valid-moves board))
+        (map first (filter #(get (second %) :pegged) board))))
+
+
+;;; 3. Representing a board textually
+
+;;; 4.  Handling user interaction
 
 
 (defn -main
