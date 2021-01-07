@@ -33,15 +33,33 @@
 ;; the actual sequence
 (def tri (tri*))
 
+#_(take 8 tri)
+;; => (1 3 6 10 15 21 28 36)
+
+
 (defn triangular?
   "Is the number triangular? e.g. 1, 3, 6, 10, 15..."
   [n]
   (= n (last (take-while #(>= n %) tri))))
 
+#_(triangular? 5)
+;; => false
+#_(triangular? 6)
+;; => true
+
+
 (defn row-tri
   "The triangular number at the end of row n"
   [n]
   (last (take n tri)))
+
+#_(row-tri 1)
+;; => 1
+#_(row-tri 2)
+;; => 3
+#_(row-tri 3)
+;; => 6
+
 
 (defn row-num
   "Returns row number the position belongs to: pos 1 in tow 2,
@@ -49,28 +67,92 @@
   [pos]
   (inc (count (take-while #(> pos %) tri))))
 
+#_(row-num 1)
+;; => 1
+#_(row-num 5)
+;; => 3
 
 
+(defn connect
+  "Form a mutual connection between two positons"
+  [board max-pos pos neighbor destination]
+  (if (<= destination max-pos)
+    (reduce (fn [new-board [p1 p2]]
+              (assoc-in new-board [p1 :connections p2] neighbor))
+            board
+            [[pos destination] [destination pos]])
+    board))
+
+#_(connect {} 15 1 2 4)
+;; {1 {:connections {4 2}},
+;;  4 {:connections {1 2}}}
+
+#_(assoc-in {} [:cookie :monster :vocals] "Finntroll")
+;; => {:cookie {:monster {:vocals "Finntroll"}}}
+#_(get-in {:cookie {:monster {:vocals "Finntroll"}}} [:cookie :monster])
+;; => {:vocals "Finntroll"}
+#_(assoc-in {} [1 :connections 4] 2)
+;; => {1 {:connections {4 2}}}
 
 
+(defn connect-rigth
+  [board max-pos pos]
+  (let [neighbor (inc pos)
+        destination (inc neighbor)]
+    (if-not (or (triangular? neighbor) (triangular? pos))
+      (connect board max-pos pos neighbor destination)
+      board)))
 
-(comment
-  (take 8 tri)
-  (triangular? 5)
-  (triangular? 6)
-  (row-tri 1)
-  (row-tri 2)
-  (row-num 1)
-  (row-num 5)
+(defn connect-down-left
+[board max-pos pos]
+(let [row (row-num pos)
+      neighbor (+ row pos)
+      destination (+ 1 row neighbor)]
+  (connect board max-pos pos neighbor destination)))
 
-  )
-;; => nil
-;; => nil
+(defn connect-down-right
+  [board max-pos pos]
+  (let [row (row-num pos)
+        neighbor (+ 1 row pos)
+        destination (+ 2 row neighbor)]
+    (connect board max-pos pos neighbor destination)))
+
+#_(connect-down-left {} 15 1)
+;; {1 {:connections {4 2}},
+;;  4 {:connections {1 2}}}
+#_(connect-down-right {} 15 3)
+;; {3 {:connections {10 6}},
+;;  10 {:connections {3 6}}}
 
 
+(defn add-pos
+  "Pegs the position and performs connections"
+  [board max-pos pos]
+  (let [pegget-board (assoc-in board [pos :pegged] true)]
+    (reduce (fn [new-board connections-creation-fn]
+              (connections-creation-fn new-board max-pos pos))
+            pegget-board
+            [connect-rigth connect-down-left connect-down-right])))
+
+#_(add-pos {} 15 1)
+;; {1 {:pegged true, :connections {4 2, 6 3}},
+;;  4 {:connections {1 2}},
+;;  6 {:connections {1 3}}}
+
+
+(defn new-board 
+  "Creates a new board with the given number of rows"
+  [rows]
+  (let [initial-board {:rows rows}
+        max-pos (row-tri rows)]
+    (reduce (fn [board pos] (add-pos board max-pos pos))
+            initial-board
+            (range 1 (inc max-pos)))))
 
 
 ;;; 2. Returning a board with the result of the player’s move
+
+;;; Moving Pegs.
 ;;; 3. Representing a board textually
 ;;; 4.  Handling user interaction
 
