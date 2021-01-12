@@ -3,45 +3,88 @@ Some notes for workshop project
 Cider notes
 
 Emacs:
+M-x cider-view-manual
+
+Start:
 C-c C-x C-j C-j jack in
 C-c M-j ...
+C-c C-q    exit cider
 
-C-c C-k    evaluate buffer
-C-c C-l    load file
-C-c M-n M-r refresh classpath
-C-c C-e    evaluate
+Running:
+TAB        complete funtion name
+
+Evaluate:
+C-c C-e    evaluate form before cursor
 C-x C-e    ....
 C-c C-c    evaluate toplevel form.
 C-M-x      ....
+C-c M-p    load form to REPL
+C-c C-z    jump to REPL
+C-c C-k    evaluate buffer
+C-c C-l    load file
+C-c C-v C-r evaluate a region
+C-c M-n M-r refresh classpath
 C-c M-;    evaluate to comment
 C-c C-v w  evaluate and replace.
 C-c M-e    evaluate to REPL
-C-c M-p    load form to REPL
-C-c C-z    jump to REPL
 C-c C-v n  evaluate the ns form
 C-c M-n M-n switch REPL to namespace
 
-M-.          Look up definition
+Documentation:
 C-c C-d C-d  Look up documentation
+C-c C-d C-w  Look up ClojureDoc.org
 C-c C-d a    Apropos
 C-c C-d C-a  ......
 C-c C-c f   Apropos vars
 C-c C-d C-f ....
+C-c C-d C-j  Look up JavaDoc
 
+Code Navigation:
+M-.         Look up definition
+C-c M-.     Find resource on the classpath
+M-,         pop back
+
+Miscl:
 C-c M-i     inspect expression
 C-c C-u     undefine symbol
+C-M i       complete var at point
+C-c C-q     quit
+C-c f       slurp forward
 
+Run tests:
+C-c C-t n   run tests for namespace
 C-c C-t t   run test at point
 C-c C-t a   rerun text
-C-c C-t n   run tests for namespace
 C-c C-t l   run loaded tests
 C-c C-t p   run all tests for project
 C-c C-t r   rerun failed failed tests
 
-C-c C-q     quit
-C-c f       slurp forward
+Debug:
+C-u C-M-x   instrument form
+C-M-x       evaluare the form to remove debut info
+#break      set a manual breakpoint in code then reevaluate
+#dbg
+n           next
+i           step in to a function
+o           step out of the current sexp
+O           force step out of current sexp
+h           skip all sexps up to here
+H           force step to here
+c           continue without in current breakpoint
+C           continue without stopping for all breakpoint
+e           eval code in current context
+p           inspect the current value
+P           inspect an arbitrary value
+l           Inspect local variables
+L           Toggle display of local variables
+j           Inject a value into running code
+s           Show the current stack
+t           Trace. Continue, printing expressions and their values.
+q           Quit execution
+
 
 Calva notes
+
 C-w         Grow region
 M-C-c       Load current file
 C-Enter     Evaluate current form
